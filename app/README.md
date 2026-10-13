@@ -50,7 +50,7 @@ The outlines are the Philippine Statistics Authority PSGC (2023) administrative 
 the data by `app/make_ncr_map.py` (`python app/make_ncr_map.py` rebuilds the file; it needs internet). `app/city_locations.csv` has the 16 population-weighted
 city points from `data/original`. The street map under the outlines needs an internet connection; the outlines do not.
 
-## Tests (`tests/test_app.py`, 47 tests)
+## Tests (`tests/test_app.py`, 48 tests)
 
 * **Valid**: normal input, numbers typed as text, all 16 cities, probabilities add up to 1, a very hot day is more dangerous than a cool rainy day.
 * **Invalid**: missing (empty, spaces, NaN), text, infinity, impossible values, unknown city, several errors at once.
@@ -72,6 +72,12 @@ Screenshots from a real browser run are in `app/screenshots/`: `01_start`, `02_n
 2. At [share.streamlit.io](https://share.streamlit.io) sign in with GitHub, choose **New app**, repository `keyyum/heatcast-ncr-simple`, branch `main`,
    main file path `app/streamlit_app.py`. It installs `requirements.txt` by itself.
 3. Copy the app link into workspace Section 7.
+
+## If the live app shows an error right after an update
+
+Streamlit Community Cloud pulls new code without restarting Python, so an old copy of a module can stay in memory (this once showed
+`AttributeError ... 'load_city_locations'`). `streamlit_app.py` now re-reads its modules on every run and retrains the model when the code or data
+file changes. If an error still appears after an update, open the app, then **Manage app, ⋮, Reboot app**, and wait about a minute.
 
 ## What the app does not do
 
