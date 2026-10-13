@@ -1,0 +1,22 @@
+,impurity_importance
+numbers__HeatIndex_Max_Today,0.3763294002973152
+numbers__Temp_Min,0.21559866821185866
+numbers__Pressure_Mean,0.16175929922356708
+numbers__SolarRadiation_Total,0.1450309712281876
+numbers__Rainfall_Total,0.07485670967137345
+city__City_Navotas,0.004307862660864092
+city__City_Valenzuela,0.004279101308161702
+city__City_Malabon,0.004106670568852302
+city__City_Marikina,0.0029974618278444205
+city__City_Quezon,0.00251840053520929
+city__City_Caloocan,0.0024124781261849935
+city__City_Muntinlupa,0.0014901840008996123
+city__City_San Juan,0.0013696293923766032
+city__City_Taguig,0.0004277910778568379
+city__City_Parañaque,0.00041880091444497156
+city__City_Las Piñas,0.0004075594569223018
+city__City_Makati,0.00040418505184745807
+city__City_Mandaluyong,0.0003763129258954745
+city__City_Manila,0.00030691037499084645
+city__City_Pasig,0.0003022854993226916
+city__City_Pasay,0.00029931764602449427

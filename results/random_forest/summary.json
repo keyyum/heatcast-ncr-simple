@@ -1,0 +1,79 @@
+{
+  "model": "Random Forest",
+  "selected_config": {
+    "max_depth": 12,
+    "min_samples_leaf": 5,
+    "class_weight": "balanced",
+    "n_estimators": 500
+  },
+  "selection_rule": "highest mean macro_f1_core3 over 5 folds; fewest trees within 0.002",
+  "configurations_tried": 26,
+  "cv": {
+    "macro_f1_core3": {
+      "mean": 0.652745148319813,
+      "sd": 0.03902382184332816
+    },
+    "macro_f1": {
+      "mean": 0.5886732090614087,
+      "sd": 0.10330699602510368
+    },
+    "accuracy": {
+      "mean": 0.7942665289256199,
+      "sd": 0.03460483600061508
+    },
+    "danger_recall": {
+      "mean": 0.6716523078533762,
+      "sd": 0.1934753388656671
+    },
+    "danger_precision": {
+      "mean": 0.4022461820177411,
+      "sd": 0.1127458196682461
+    }
+  },
+  "copy_today_cv": {
+    "macro_f1_core3": {
+      "mean": 0.6785494675153543,
+      "sd": 0.05107728648428519
+    },
+    "macro_f1": {
+      "mean": 0.6200449643133382,
+      "sd": 0.10187590169233196
+    },
+    "accuracy": {
+      "mean": 0.8463842975206612,
+      "sd": 0.03939290842965037
+    },
+    "danger_recall": {
+      "mean": 0.5183162973172744,
+      "sd": 0.15251842020281986
+    },
+    "danger_precision": {
+      "mean": 0.5267466063993945,
+      "sd": 0.15345649135371828
+    }
+  },
+  "folds_ahead_of_rule": {
+    "macro_f1_core3": 1,
+    "macro_f1": 1,
+    "accuracy": 0,
+    "danger_recall": 5,
+    "danger_precision": 0
+  },
+  "top_permutation_importance": {
+    "HeatIndex_Max_Today": 0.267303401564969,
+    "Temp_Min": 0.0864284087692922,
+    "SolarRadiation_Total": 0.06911017780415823,
+    "Pressure_Mean": 0.023143055015652846,
+    "City": 0.01085978002249377,
+    "Rainfall_Total": 0.009969042876477142
+  },
+  "top_impurity_importance": {
+    "numbers__HeatIndex_Max_Today": 0.3763294002973152,
+    "numbers__Temp_Min": 0.21559866821185866,
+    "numbers__Pressure_Mean": 0.16175929922356708,
+    "numbers__SolarRadiation_Total": 0.1450309712281876,
+    "numbers__Rainfall_Total": 0.07485670967137345,
+    "city__City_Navotas": 0.004307862660864092
+  },
+  "test_days_used": false
+}

@@ -39,7 +39,7 @@ Rows: 40 *Not Hazardous*, 3,954 *Caution*, 22,994 *Extreme Caution*, 2,180 *Dang
 | `tests/` | automatic checks (`python -m unittest discover -s tests -v`) |
 | `notebooks/` | one notebook per person (see below) |
 | `models/` | saved models (later) |
-| `app/` | the Streamlit app (later) |
+| `app/` | the Streamlit app (`streamlit run app/streamlit_app.py`), see [`app/README.md`](app/README.md) |
 | `documentation/` | plain-language guide and the data dictionary |
 | `paper/` | the final paper (later) |
 
@@ -53,7 +53,7 @@ Rows: 40 *Not Hazardous*, 3,954 *Caution*, 22,994 *Extreme Caution*, 2,180 *Dang
    `notebooks/02_logistic_regression.ipynb` (Harry Verdeflor), `notebooks/03_random_forest.ipynb` (Edrian Tala),
    `notebooks/04_gradient_boosting.ipynb` (Marc Lawrence David).
 6. **Compare and pick the best model**, then check it **once** on the test days.
-7. **Deploy** it in a small Streamlit app (`app/`).
+7. **Deploy** it in a small Streamlit app (`app/`): built on the proposed Random Forest; it is switched to the group's final pick in one place (`MODEL_CONFIG` in `app/app_logic.py`).
 
 ## Quick start
 
