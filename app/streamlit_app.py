@@ -4,6 +4,7 @@ Run it from the project folder:   streamlit run app/streamlit_app.py
 """
 from __future__ import annotations
 
+import importlib
 import os
 import sys
 from pathlib import Path
@@ -11,8 +12,15 @@ from pathlib import Path
 import pydeck as pdk
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+APP_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(APP_DIR))
 import app_logic as A  # noqa: E402
+
+# On Streamlit Community Cloud a new version of the code is pulled without restarting Python, so the modules imported by an earlier
+# version can stay in memory and no longer match this file (AttributeError on a new function). Re-reading them on every run prevents that.
+for _name in ("make_dataset", "common", "app_logic"):
+    if _name in sys.modules:
+        importlib.reload(sys.modules[_name])
 
 # The number of trees can be lowered for quick tests (HEATCAST_APP_TREES=30); the real app uses the 500 of Section 5.2.
 N_TREES = int(os.environ.get("HEATCAST_APP_TREES", A.MODEL_CONFIG["n_estimators"]))
@@ -20,13 +28,19 @@ N_TREES = int(os.environ.get("HEATCAST_APP_TREES", A.MODEL_CONFIG["n_estimators"
 st.set_page_config(page_title="HeatCast NCR", page_icon="🌡️", layout="centered")
 
 
+def code_version() -> tuple:
+    """Changes whenever the code or the data file is replaced, so a new deploy trains a fresh model instead of reusing the old one."""
+    files = [APP_DIR / "app_logic.py", APP_DIR.parent / "src" / "common.py", APP_DIR.parent / "src" / "make_dataset.py", A.C.DATA_FILE]
+    return tuple((f.name, f.stat().st_mtime_ns, f.stat().st_size) for f in files)
+
+
 @st.cache_resource(show_spinner="Training the model on the 2021 to 2024 data (a few seconds, only once)...")
-def load_app():
+def load_app(version: tuple):
     train = A.load_training_data()
     return A.build_model(train, n_estimators=N_TREES), A.training_summary(train)
 
 
-model, summary = load_app()
+model, summary = load_app(code_version())
 LOCATIONS = A.load_city_locations()
 SHAPES = A.load_city_shapes()
 

@@ -360,6 +360,15 @@ class Screen(unittest.TestCase):
     def maps(self, at):
         return at.get("deck_gl_json_chart")
 
+    def test_an_old_copy_of_the_logic_still_in_memory_does_not_break_the_page(self):
+        """Streamlit Cloud pulls new code without restarting Python, so app_logic from the previous deploy can still be in memory
+        (this crashed the live app with AttributeError: no attribute 'load_city_locations'). The page must re-read it."""
+        for name in ("load_city_locations", "load_city_shapes", "build_map_shapes"):
+            delattr(A, name)                                   # the old version did not have these
+        at = self.app()
+        self.assertEqual(len(self.maps(at)), 1)
+        self.assertTrue(hasattr(A, "build_map_shapes"))        # re-read from the file
+
     def test_the_map_is_on_the_page_from_the_start(self):
         self.assertEqual(len(self.maps(self.app())), 1)
 
