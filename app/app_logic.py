@@ -4,9 +4,9 @@
     train the model    ->   build_model(train)              (the Random Forest of workspace Section 5.2, fitted on the training days)
     guess tomorrow     ->   predict_level(model, clean)     (level + probability of every level)
 
-The model is the one proposed in workspace Section 6.3 (Random Forest: depth 12, 5 days per leaf, balanced class weights,
+The model is the one selected in workspace Section 6.3 (Random Forest: depth 12, 5 days per leaf, balanced class weights,
 500 trees). It is fitted here on the TRAINING days only, exactly like the model that was scored in Section 5.2, so the
-untouched test days stay untouched until the group has run final_test(). To switch to another model, change MODEL_CONFIG
+app never sees the test days (they were used once, in notebooks/05_final_test.ipynb). To switch to another model, change MODEL_CONFIG
 (or build_model) and nothing else in the app needs to change.
 """
 from __future__ import annotations

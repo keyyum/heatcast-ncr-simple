@@ -37,8 +37,9 @@ Rows: 40 *Not Hazardous*, 3,954 *Caution*, 22,994 *Extreme Caution*, 2,180 *Dang
 | `src/make_dataset.py` | the one data step: original → simple dataset |
 | `src/common.py` | shared tools: load the data, split train/test, 5 folds, preprocessing, scoring. **All three models use it.** |
 | `tests/` | automatic checks (`python -m unittest discover -s tests -v`) |
-| `notebooks/` | one notebook per person (see below) |
-| `models/` | saved models (later) |
+| `notebooks/` | one notebook per person (see below), and `05_final_test.ipynb` (the one check on the test days) |
+| `models/` | empty: the app trains its model when it starts, so no model file is stored |
+| `results/` | the saved scores, tables and figures of each notebook (`results/random_forest/`, `results/final_test/`) |
 | `app/` | the Streamlit app (`streamlit run app/streamlit_app.py`), see [`app/README.md`](app/README.md) |
 | `documentation/` | plain-language guide and the data dictionary |
 | `paper/` | the final paper (later) |
@@ -52,15 +53,16 @@ Rows: 40 *Not Hazardous*, 3,954 *Caution*, 22,994 *Extreme Caution*, 2,180 *Dang
 5. **Train the three models**, each on the same split and folds:
    `notebooks/02_logistic_regression.ipynb` (Harry Verdeflor), `notebooks/03_random_forest.ipynb` (Edrian Tala),
    `notebooks/04_gradient_boosting.ipynb` (Marc Lawrence David).
-6. **Compare and pick the best model**, then check it **once** on the test days.
-7. **Deploy** it in a small Streamlit app (`app/`): built on the proposed Random Forest; it is switched to the group's final pick in one place (`MODEL_CONFIG` in `app/app_logic.py`).
+6. **Compare and pick the best model**, then check it **once** on the test days: done. The group picked the Random Forest
+   (workspace Section 6.3); `notebooks/05_final_test.ipynb` checked it once (workspace Section 6.4, `results/final_test/`).
+7. **Deploy** it in a small Streamlit app (`app/`): done, with the selected Random Forest, at https://heatcast-ncr.streamlit.app/.
 
 ## Quick start
 
 ```bash
 pip install -r requirements.txt
 python src/make_dataset.py                 # rebuilds data/processed/ncr_city_daily.csv (optional, it is already there)
-python -m unittest discover -s tests -v    # 24 checks, a few seconds
+python -m unittest discover -s tests -v    # 72 checks (48 of them for the app), about 20 seconds
 ```
 
 At the top of a notebook (the notebooks live in `notebooks/`):

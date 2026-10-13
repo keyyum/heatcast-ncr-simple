@@ -1,0 +1,6 @@
+,RF test,RF folds mean,RF folds SD,Copy today test,Copy today folds mean
+macro_f1_core3,0.6142,0.6527,0.039,0.6752,0.6785
+macro_f1,0.6142,0.5887,0.1033,0.6752,0.62
+accuracy,0.731,0.7943,0.0346,0.8238,0.8464
+danger_recall,0.8444,0.6717,0.1935,0.5965,0.5183
+danger_precision,0.3591,0.4022,0.1127,0.5965,0.5267

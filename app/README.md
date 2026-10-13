@@ -13,9 +13,9 @@ The first start trains the model on the training days (2021-01-01 to 2024-12-27,
 
 ## Which model is inside
 
-The Random Forest proposed in workspace Section 6.3 (depth 12, 5 days per leaf, balanced class weights, 500 trees; Section 5.2), built with the
+The Random Forest selected in workspace Section 6.3 (depth 12, 5 days per leaf, balanced class weights, 500 trees; Section 5.2), built with the
 same `make_preprocess(scale=False)` as the notebooks. It is fitted on the **training days only**, like the model that was scored, so the test
-days are still untouched. **The group has not confirmed this model yet and `final_test()` has not been run.** If the group picks another
+days are still untouched. This is the model the group selected; its one check on the test days is in `notebooks/05_final_test.ipynb`. To swap in another
 model, change `MODEL_CONFIG` / `build_model` in `app/app_logic.py`: the screen and the checks do not change.
 
 ## How the inputs are checked (`app/app_logic.py`)
@@ -64,7 +64,7 @@ city points from `data/original`. The street map under the outlines needs an int
   impossible value (error), value on the limit, unusual value (warning and prediction).
 
 Screenshots from a real browser run are in `app/screenshots/`: `01_start`, `02_normal_day`, `03_danger_day`, `04_impossible_value`,
-`05_missing_values`, `06_unusual_value`.
+`05_missing_values`, `06_unusual_value` (taken with the map; the background map tiles are missing only because the test machine had no access to them).
 
 ## Putting it online (Streamlit Community Cloud)
 

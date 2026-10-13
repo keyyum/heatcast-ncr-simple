@@ -1,0 +1,9 @@
+model,level,precision,recall,f1,true days,predicted days
+Random Forest,Not Hazardous,0.0,0.0,0.0,0,18
+Random Forest,Caution,0.431,0.67,0.5245,806,1253
+Random Forest,Extreme Caution,0.9155,0.7331,0.8142,4687,3753
+Random Forest,Danger,0.3591,0.8444,0.5039,347,816
+Copy today rule,Not Hazardous,0.0,0.0,0.0,0,0
+Copy today rule,Caution,0.5348,0.5434,0.5391,806,819
+Copy today rule,Extreme Caution,0.8913,0.8888,0.8901,4687,4674
+Copy today rule,Danger,0.5965,0.5965,0.5965,347,347
