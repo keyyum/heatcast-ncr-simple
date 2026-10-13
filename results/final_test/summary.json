@@ -1,0 +1,32 @@
+{
+  "model": "Random Forest",
+  "config": {
+    "max_depth": 12,
+    "min_samples_leaf": 5,
+    "class_weight": "balanced",
+    "n_estimators": 500
+  },
+  "random_state": 42,
+  "trained_on": "2021-01-01 to 2024-12-27 (23312 rows)",
+  "tested_on": "2024-12-29 to 2025-12-28 (5840 rows)",
+  "test_scores": {
+    "macro_f1": 0.6142045940546081,
+    "macro_f1_core3": 0.6142045940546083,
+    "accuracy": 0.7309931506849315,
+    "danger_recall": 0.8443804034582133,
+    "danger_precision": 0.3590686274509804
+  },
+  "copy_today_test_scores": {
+    "macro_f1": 0.6752315188060082,
+    "macro_f1_core3": 0.6752315188060082,
+    "accuracy": 0.8238013698630137,
+    "danger_recall": 0.5965417867435159,
+    "danger_precision": 0.5965417867435159
+  },
+  "danger_days": 347,
+  "danger_caught": 293,
+  "danger_called": 816,
+  "copy_today_danger_caught": 207,
+  "copy_today_danger_called": 347,
+  "sklearn": "1.9.1"
+}

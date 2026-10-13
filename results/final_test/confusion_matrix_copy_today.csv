@@ -1,0 +1,5 @@
+,Not Hazardous,Caution,Extreme Caution,Danger
+Not Hazardous,0,0,0,0
+Caution,0,438,368,0
+Extreme Caution,0,381,4166,140
+Danger,0,0,140,207

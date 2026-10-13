@@ -115,9 +115,10 @@ with st.expander("About this model and its limits"):
         "- **Model:** Random Forest (many decision trees that vote), trained on 2021-01-01 to 2024-12-27 data for the 16 cities.\n"
         "- **It is a decision aid, not a PAGASA advisory.** The labels come from a heat index calculated from weather-model "
         "estimates (ERA5), not from station readings.\n"
-        "- **It catches most Danger days but also raises false alarms.** In the group's tests it found about 3 in 4 real Danger "
-        "days, and about 4 in 10 of its Danger warnings were real. It did not beat the simple rule 'tomorrow = today' on overall "
-        "score; it only caught more Danger days (workspace doc, Section 5.2).\n"
+        "- **It catches most Danger days but also raises false alarms.** On the 2025 test days, which it never saw while it was "
+        "built, it found 293 of the 347 real Danger days (84%), but only 293 of its 816 Danger warnings (36%) were real. It did "
+        "not beat the simple rule 'tomorrow = today' on overall score; it only caught more Danger days (workspace doc, "
+        "Sections 5.2 and 6.4).\n"
         "- It only looks at **today's** weather, so it cannot see a storm that is still coming."
     )
 st.caption("Weather data: Open-Meteo.com (CC BY 4.0), containing modified Copernicus Climate Change Service (ERA5) information. "
