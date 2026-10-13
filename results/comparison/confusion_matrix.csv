@@ -1,0 +1,65 @@
+model,true,predicted,rows
+Copy today rule,Not Hazardous,Not Hazardous,3
+Copy today rule,Not Hazardous,Caution,37
+Copy today rule,Not Hazardous,Extreme Caution,0
+Copy today rule,Not Hazardous,Danger,0
+Copy today rule,Caution,Not Hazardous,37
+Copy today rule,Caution,Caution,1716
+Copy today rule,Caution,Extreme Caution,795
+Copy today rule,Caution,Danger,0
+Copy today rule,Extreme Caution,Not Hazardous,0
+Copy today rule,Extreme Caution,Caution,795
+Copy today rule,Extreme Caution,Extreme Caution,13769
+Copy today rule,Extreme Caution,Danger,655
+Copy today rule,Danger,Not Hazardous,0
+Copy today rule,Danger,Caution,0
+Copy today rule,Danger,Extreme Caution,655
+Copy today rule,Danger,Danger,898
+Logistic Regression,Not Hazardous,Not Hazardous,0
+Logistic Regression,Not Hazardous,Caution,40
+Logistic Regression,Not Hazardous,Extreme Caution,0
+Logistic Regression,Not Hazardous,Danger,0
+Logistic Regression,Caution,Not Hazardous,2
+Logistic Regression,Caution,Caution,1574
+Logistic Regression,Caution,Extreme Caution,972
+Logistic Regression,Caution,Danger,0
+Logistic Regression,Extreme Caution,Not Hazardous,0
+Logistic Regression,Extreme Caution,Caution,487
+Logistic Regression,Extreme Caution,Extreme Caution,14530
+Logistic Regression,Extreme Caution,Danger,202
+Logistic Regression,Danger,Not Hazardous,0
+Logistic Regression,Danger,Caution,0
+Logistic Regression,Danger,Extreme Caution,1041
+Logistic Regression,Danger,Danger,512
+Random Forest,Not Hazardous,Not Hazardous,0
+Random Forest,Not Hazardous,Caution,40
+Random Forest,Not Hazardous,Extreme Caution,0
+Random Forest,Not Hazardous,Danger,0
+Random Forest,Caution,Not Hazardous,3
+Random Forest,Caution,Caution,1990
+Random Forest,Caution,Extreme Caution,555
+Random Forest,Caution,Danger,0
+Random Forest,Extreme Caution,Not Hazardous,0
+Random Forest,Extreme Caution,Caution,1530
+Random Forest,Extreme Caution,Extreme Caution,12216
+Random Forest,Extreme Caution,Danger,1473
+Random Forest,Danger,Not Hazardous,0
+Random Forest,Danger,Caution,0
+Random Forest,Danger,Extreme Caution,382
+Random Forest,Danger,Danger,1171
+Gradient Boosting,Not Hazardous,Not Hazardous,0
+Gradient Boosting,Not Hazardous,Caution,40
+Gradient Boosting,Not Hazardous,Extreme Caution,0
+Gradient Boosting,Not Hazardous,Danger,0
+Gradient Boosting,Caution,Not Hazardous,7
+Gradient Boosting,Caution,Caution,1943
+Gradient Boosting,Caution,Extreme Caution,598
+Gradient Boosting,Caution,Danger,0
+Gradient Boosting,Extreme Caution,Not Hazardous,0
+Gradient Boosting,Extreme Caution,Caution,1518
+Gradient Boosting,Extreme Caution,Extreme Caution,12166
+Gradient Boosting,Extreme Caution,Danger,1535
+Gradient Boosting,Danger,Not Hazardous,0
+Gradient Boosting,Danger,Caution,0
+Gradient Boosting,Danger,Extreme Caution,363
+Gradient Boosting,Danger,Danger,1190
