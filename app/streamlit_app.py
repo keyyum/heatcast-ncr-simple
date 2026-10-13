@@ -28,33 +28,30 @@ def load_app():
 
 model, summary = load_app()
 LOCATIONS = A.load_city_locations()
+SHAPES = A.load_city_shapes()
 
 
 def show_map(selected=None, result=None):
-    """Metro Manila with one dot per city. Only the city that was asked about is coloured, by its guessed level for tomorrow."""
-    data = A.build_map_data(LOCATIONS, selected, result).sort_values("radius", kind="stable")   # the chosen city is drawn last, on top
-    dots = pdk.Layer("ScatterplotLayer", data, get_position=["Longitude", "Latitude"], get_fill_color="color", get_radius="radius",
-                     radius_min_pixels=6, radius_max_pixels=30, stroked=True, get_line_color=[255, 255, 255],
-                     line_width_min_pixels=2, pickable=True)
-    names = pdk.Layer("TextLayer", data, get_position=["Longitude", "Latitude"], get_text="label", get_size=13,
-                      character_set="'auto'",         # draw every character of the names, so "ñ" (Parañaque, Las Piñas) shows
-                      get_color=[30, 30, 30], get_pixel_offset=[0, -22], get_text_anchor="'middle'",
-                      get_alignment_baseline="'bottom'", background=True, get_background_color=[255, 255, 255, 215],
-                      background_padding=[3, 1])
-    view = pdk.ViewState(latitude=float(LOCATIONS["Latitude"].mean()), longitude=float(LOCATIONS["Longitude"].mean()), zoom=9.9)
-    st.pydeck_chart(pdk.Deck(layers=[dots, names], initial_view_state=view, map_style="light", tooltip={"text": "{tooltip}"}),
-                    height=480)
+    """The real outline of Metro Manila with its cities. Only the city that was asked about is coloured: blue when chosen,
+    the colour of tomorrow's guessed level once the guess is made. The other cities stay grey."""
+    shapes, labels = A.build_map_shapes(SHAPES, LOCATIONS, selected, result)
+    cities = pdk.Layer("GeoJsonLayer", shapes, stroked=True, filled=True, pickable=True, get_fill_color="properties.fill_color",
+                       get_line_color="properties.line_color", get_line_width="properties.line_width", line_width_units="'pixels'")
+    names = pdk.Layer("TextLayer", labels, get_position=["cx", "cy"], get_text="label", get_size=12, character_set="'auto'",
+                      get_color=[30, 30, 30], get_text_anchor="'middle'", get_alignment_baseline="'center'",
+                      get_pixel_offset=["ox", "oy"],
+                      background=True, get_background_color=[255, 255, 255, 190], background_padding=[3, 1])
+    view = pdk.ViewState(latitude=14.575, longitude=121.03, zoom=9.7)
+    st.pydeck_chart(pdk.Deck(layers=[cities, names], initial_view_state=view, map_style="light",
+                             tooltip={"text": "{tooltip}"}), height=620)
     legend = "  ".join(f"{A.LEVEL_SQUARES[lv]} {lv}" for lv in ["Caution", "Extreme Caution", "Danger"])
     if result is None:
-        st.caption(f"🟦 {selected} is selected. Fill in today's weather and click the button: the dot will take the colour of "
+        st.caption(f"🟦 {selected} is selected. Fill in today's weather and click the button: the city will take the colour of "
                    f"tomorrow's guessed level ({legend}). The other cities stay grey.")
     else:
         st.caption(f"{legend}. Only {selected} is coloured, because the model uses the weather typed in for that city. "
-                   "The grey dots are the other cities. Hover over a dot for its name.")
+                   "The grey cities are the others. Hover over a city for its name. Pateros (pale) is part of NCR but not in the data.")
 
-st.title("HeatCast NCR")
-st.write("Enter **today's** weather for a city in Metro Manila. The app guesses how hot tomorrow will **feel**, "
-         "as one of the official PAGASA heat levels. All five boxes are needed; the grey hint shows a typical value.")
 
 # The city picker is outside the form so that the map reacts as soon as another city is chosen.
 city = st.selectbox("City", summary["cities"], index=summary["cities"].index("Manila"))
@@ -109,4 +106,5 @@ with st.expander("About this model and its limits"):
         "score; it only caught more Danger days (workspace doc, Section 5.2).\n"
         "- It only looks at **today's** weather, so it cannot see a storm that is still coming."
     )
-st.caption("Weather data: Open-Meteo.com (CC BY 4.0), containing modified Copernicus Climate Change Service (ERA5) information.")
+st.caption("Weather data: Open-Meteo.com (CC BY 4.0), containing modified Copernicus Climate Change Service (ERA5) information. "
+           "City outlines: Philippine Statistics Authority PSGC boundaries via faeldon/philippines-json-maps (MIT).")

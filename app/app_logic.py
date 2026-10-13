@@ -11,6 +11,7 @@ untouched test days stay untouched until the group has run final_test(). To swit
 """
 from __future__ import annotations
 
+import json
 import math
 import sys
 from dataclasses import dataclass, field
@@ -53,6 +54,7 @@ DANGER = C.DANGER
 # The map (one dot per city; the city that was asked about is coloured by its guessed level for tomorrow)
 # ----------------------------------------------------------------------------------------------------------------------
 LOCATIONS_FILE = Path(__file__).resolve().parent / "city_locations.csv"      # City, Latitude, Longitude (from data/original)
+SHAPES_FILE = Path(__file__).resolve().parent / "ncr_cities.geojson"         # outlines of the 16 cities + Pateros (app/make_ncr_map.py)
 LEVEL_COLORS = {                     # RGB, close to the usual heat-warning colours
     "Not Hazardous": (46, 160, 67),
     "Caution": (240, 200, 0),
@@ -61,7 +63,11 @@ LEVEL_COLORS = {                     # RGB, close to the usual heat-warning colo
     "Extreme Danger": (110, 0, 0),
 }
 LEVEL_SQUARES = {"Not Hazardous": "🟩", "Caution": "🟨", "Extreme Caution": "🟧", "Danger": "🟥", "Extreme Danger": "🟫"}
-NEUTRAL_COLOR = (150, 150, 150)
+NEUTRAL_COLOR = (170, 170, 170)
+OUTSIDE_COLOR = (225, 225, 225)       # Pateros: part of NCR, but not one of the 16 cities of the data
+LINE_COLOR = (255, 255, 255)          # outline between cities
+SELECTED_LINE_COLOR = (20, 20, 20)    # outline of the chosen city
+LABEL_OFFSETS = {"Navotas": (-30, 16), "Pasig": (24, 8)}  # (pixels right, pixels down) for names that would sit on top of a neighbour's name
 HIGHLIGHT_COLOR = (35, 105, 225)      # the chosen city before its level is guessed (blue is not used by any level)
 
 
@@ -180,16 +186,21 @@ def load_city_locations() -> pd.DataFrame:
     return pd.read_csv(LOCATIONS_FILE)
 
 
+def load_city_shapes() -> dict:
+    """GeoJSON FeatureCollection with the outline of every NCR city (properties: City, cx, cy = middle point for the label, in_data)."""
+    return json.loads(SHAPES_FILE.read_text(encoding="utf-8"))
+
+
 def build_map_data(locations: pd.DataFrame, selected: str | None = None, prediction: Prediction | None = None) -> pd.DataFrame:
     """One row per city for the map. Three states:
-      * nothing chosen                -> every city is a small grey dot
-      * a city chosen, no guess yet   -> that city is a big blue dot (highlighted), the others stay grey
-      * a city chosen and guessed     -> that city is a big dot in the colour of its guessed level, the others stay grey
+      * nothing chosen                -> every city is grey
+      * a city chosen, no guess yet   -> that city is highlighted in blue, the others stay grey
+      * a city chosen and guessed     -> that city has the colour of its guessed level, the others stay grey
     (Only the chosen city is ever coloured: the model only knows the weather that was typed in for that city.)
-    Columns: City, Latitude, Longitude, color (R, G, B), radius (metres), label (name shown on the map), tooltip (hover text)."""
+    Columns: City, Latitude, Longitude, color (R, G, B), selected (bool), label (name on the map), tooltip (hover text)."""
     df = locations.copy()
     df["color"] = [list(NEUTRAL_COLOR)] * len(df)
-    df["radius"] = 1100.0
+    df["selected"] = False
     df["label"] = df["City"]
     df["tooltip"] = df["City"]
     if selected is None:
@@ -197,7 +208,7 @@ def build_map_data(locations: pd.DataFrame, selected: str | None = None, predict
     if selected not in set(df["City"]):
         raise ValueError(f"unknown city {selected!r}")
     i = df.index[df["City"] == selected][0]
-    df.at[i, "radius"] = 2600.0
+    df.at[i, "selected"] = True
     if prediction is None:
         df.at[i, "color"] = list(HIGHLIGHT_COLOR)
         df.at[i, "tooltip"] = f"{selected} (selected)"
@@ -205,6 +216,30 @@ def build_map_data(locations: pd.DataFrame, selected: str | None = None, predict
         top = prediction.probabilities.sort_values(ascending=False)
         top = top[top >= 0.005]
         df.at[i, "color"] = list(LEVEL_COLORS[prediction.level])
-        df.at[i, "label"] = f"{selected}: {prediction.level}"
+        df.at[i, "label"] = f"{selected}\n{prediction.level}"
         df.at[i, "tooltip"] = f"{selected}: tomorrow {prediction.level} ({', '.join(f'{k} {v:.0%}' for k, v in top.items())})"
     return df
+
+
+def build_map_shapes(shapes: dict, locations: pd.DataFrame, selected: str | None = None,
+                     prediction: Prediction | None = None) -> tuple[dict, pd.DataFrame]:
+    """The map layers: a copy of the NCR outlines with the colour, outline and hover text of every city in its properties
+    (fill_color is RGBA), and a table of name labels (one per city at the middle of its outline)."""
+    table = build_map_data(locations, selected, prediction).set_index("City")
+    features, labels = [], []
+    for f in shapes["features"]:
+        props = dict(f["properties"])
+        city = props["City"]
+        if city in table.index:
+            row = table.loc[city]
+            props.update(fill_color=[*row["color"], 235 if row["selected"] else 215],
+                         line_color=list(SELECTED_LINE_COLOR if row["selected"] else LINE_COLOR),
+                         line_width=4 if row["selected"] else 1, tooltip=row["tooltip"], label=row["label"])
+            ox, oy = LABEL_OFFSETS.get(city, (0, 0))
+            labels.append({"label": row["label"], "cx": props["cx"], "cy": props["cy"], "ox": ox, "oy": oy,
+                           "selected": bool(row["selected"])})
+        else:                                               # Pateros: on the map, but not in the data
+            props.update(fill_color=[*OUTSIDE_COLOR, 200], line_color=list(LINE_COLOR), line_width=1,
+                         tooltip=f"{city} (part of NCR, not one of the 16 cities in the data)", label="")
+        features.append({"type": "Feature", "geometry": f["geometry"], "properties": props})
+    return {"type": "FeatureCollection", "features": features}, pd.DataFrame(labels)

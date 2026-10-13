@@ -35,24 +35,31 @@ All problems are shown at once, never as a crash.
 
 ## The map
 
-A map of Metro Manila above the form shows the 16 cities as dots (`app/city_locations.csv`, coordinates from `data/original`).
-* **Choosing a city** (the picker sits above the map, outside the form) highlights its dot in **blue** at once; Manila is chosen at the start.
-* **Clicking "Guess tomorrow's level"** turns that dot into the colour of its guessed level (yellow Caution, orange Extreme Caution, red Danger).
-  Hover over it for the probabilities.
-* **The other 15 cities always stay grey.** The model only knows the weather that was typed in for the chosen city, so the app does not invent a
+Above the form, a map shows the **real outline of Metro Manila** with the boundary of each city (`app/ncr_cities.geojson`).
+* **Choosing a city** (the picker sits above the map, outside the form) highlights it in **blue** with a dark outline at once; Manila is chosen
+  at the start.
+* **Clicking "Guess tomorrow's level"** fills that city with the colour of its guessed level (yellow Caution, orange Extreme Caution, red Danger)
+  and writes the level under its name. Hover over a city for its probabilities.
+* **The other cities always stay grey.** The model only knows the weather that was typed in for the chosen city, so the app does not invent a
   level for the others. Choosing another city clears the previous result.
+* **Pateros** (pale) is the 17th local government of NCR. It is not one of the 16 cities in the data, so it is only drawn, never coloured.
 
-The street map underneath needs an internet connection.
+The outlines are the Philippine Statistics Authority PSGC (2023) administrative boundaries as published by
+[faeldon/philippines-json-maps](https://github.com/faeldon/philippines-json-maps) (MIT; made from
+[altcoder/philippines-psgc-shapefiles](https://github.com/altcoder/philippines-psgc-shapefiles)), at 10 % detail, merged and renamed to the names used in
+the data by `app/make_ncr_map.py` (`python app/make_ncr_map.py` rebuilds the file; it needs internet). `app/city_locations.csv` has the 16 population-weighted
+city points from `data/original`. The street map under the outlines needs an internet connection; the outlines do not.
 
-## Tests (`tests/test_app.py`, 39 tests)
+## Tests (`tests/test_app.py`, 47 tests)
 
 * **Valid**: normal input, numbers typed as text, all 16 cities, probabilities add up to 1, a very hot day is more dangerous than a cool rainy day.
 * **Invalid**: missing (empty, spaces, NaN), text, infinity, impossible values, unknown city, several errors at once.
 * **Boundary**: every hard limit accepted and just beyond it refused, training-range edges (no warning) and just outside (warning),
   zero rain, the PAGASA level boundaries for today's level (26.99 / 27 / 32.99 / 33 / 41.99 / 42), the extreme corners of the input space.
-* **The map**: the 16 locations match the data and the original file and lie inside Metro Manila; grey with nothing chosen, blue for the chosen
-  city before the guess, its level colour after it, the other 15 unchanged; one distinct colour per level; every city can be chosen; an unknown
-  city is refused; on the real page the highlight follows the picker and changes colour when the guess is made.
+* **The map**: the outline file has the 16 cities plus Pateros, closed polygons inside Metro Manila, label points near each city's location, a
+  plausible total area and a small size; grey with nothing chosen, blue for the chosen city before the guess, its level colour and a dark outline
+  after it, the other cities unchanged; one distinct colour per level; every city can be chosen; an unknown city is refused; on the real page the
+  highlight follows the picker and changes colour when the guess is made.
 * **The real page** (run headless): empty page, empty form (5 errors, no prediction), one missing value named, valid input (5 probabilities),
   impossible value (error), value on the limit, unusual value (warning and prediction).
 
