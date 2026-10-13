@@ -8,6 +8,7 @@ import os
 import sys
 from pathlib import Path
 
+import pydeck as pdk
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -26,6 +27,30 @@ def load_app():
 
 
 model, summary = load_app()
+LOCATIONS = A.load_city_locations()
+
+
+def show_map(selected=None, result=None):
+    """Metro Manila with one dot per city. Only the city that was asked about is coloured, by its guessed level for tomorrow."""
+    data = A.build_map_data(LOCATIONS, selected, result)
+    dots = pdk.Layer("ScatterplotLayer", data, get_position=["Longitude", "Latitude"], get_fill_color="color", get_radius="radius",
+                     radius_min_pixels=6, radius_max_pixels=30, stroked=True, get_line_color=[255, 255, 255],
+                     line_width_min_pixels=2, pickable=True)
+    names = pdk.Layer("TextLayer", data, get_position=["Longitude", "Latitude"], get_text="label", get_size=13,
+                      character_set="'auto'",         # draw every character of the names, so "ñ" (Parañaque, Las Piñas) shows
+                      get_color=[30, 30, 30], get_pixel_offset=[0, -22], get_text_anchor="'middle'",
+                      get_alignment_baseline="'bottom'", background=True, get_background_color=[255, 255, 255, 215],
+                      background_padding=[3, 1])
+    view = pdk.ViewState(latitude=float(LOCATIONS["Latitude"].mean()), longitude=float(LOCATIONS["Longitude"].mean()), zoom=9.9)
+    st.pydeck_chart(pdk.Deck(layers=[dots, names], initial_view_state=view, map_style="light", tooltip={"text": "{tooltip}"}),
+                    height=480)
+    legend = "  ".join(f"{A.LEVEL_SQUARES[lv]} {lv}" for lv in ["Caution", "Extreme Caution", "Danger"])
+    if result is None:
+        st.caption("Choose a city and click the button: its dot on the map will take the colour of tomorrow's guessed level. "
+                   f"Colours: {legend}.")
+    else:
+        st.caption(f"{legend}. Only {selected} is coloured, because the model uses the weather typed in for that city. "
+                   "The grey dots are the other cities. Hover over a dot for its name.")
 
 st.title("HeatCast NCR")
 st.write("Enter **today's** weather for a city in Metro Manila. The app guesses how hot tomorrow will **feel**, "
@@ -42,30 +67,34 @@ with st.form("inputs"):
                                             placeholder=f"typical: {median:g}", help=meta["help"], key=col)
     submitted = st.form_submit_button("Guess tomorrow's level", type="primary")
 
-if submitted:
-    check = A.validate_inputs(raw, summary)
-    for message in check.errors:
-        st.error(message)
-    if check.ok:
-        for message in check.warnings:
-            st.warning(message)
-        result = A.predict_level(model, check.clean)
-        danger_p = result.probabilities[A.DANGER]
+check = A.validate_inputs(raw, summary) if submitted else None
+for message in (check.errors if check else []):
+    st.error(message)
+if not (check and check.ok):
+    show_map()                                   # nothing guessed yet: all cities grey
 
-        if result.level == A.DANGER:
-            st.error(f"**Tomorrow in {city}: Danger** (heat index 42 °C or more). Consider precautions: move outdoor activities, "
-                     "prepare drinking water and cooling spaces, and warn vulnerable people.")
-        elif result.level == "Extreme Caution":
-            st.warning(f"**Tomorrow in {city}: Extreme Caution** (heat index 33 to below 42 °C).")
-        else:
-            st.success(f"**Tomorrow in {city}: {result.level}.**")
+if check and check.ok:
+    for message in check.warnings:
+        st.warning(message)
+    result = A.predict_level(model, check.clean)
+    danger_p = result.probabilities[A.DANGER]
 
-        st.subheader("How sure is the model?")
-        for level, p in result.probabilities.items():
-            st.progress(float(p), text=f"{level}: {p:.1%}")
-        st.caption(f"Today's heat index is already in **{result.today_level}**. "
-                   f"The model puts {danger_p:.1%} on Danger tomorrow. Extreme Danger never happened in the 2021 to 2025 data, "
-                   "so the model cannot predict it.")
+    if result.level == A.DANGER:
+        st.error(f"**Tomorrow in {city}: Danger** (heat index 42 °C or more). Consider precautions: move outdoor activities, "
+                 "prepare drinking water and cooling spaces, and warn vulnerable people.")
+    elif result.level == "Extreme Caution":
+        st.warning(f"**Tomorrow in {city}: Extreme Caution** (heat index 33 to below 42 °C).")
+    else:
+        st.success(f"**Tomorrow in {city}: {result.level}.**")
+
+    show_map(city, result)
+
+    st.subheader("How sure is the model?")
+    for level, p in result.probabilities.items():
+        st.progress(float(p), text=f"{level}: {p:.1%}")
+    st.caption(f"Today's heat index is already in **{result.today_level}**. "
+               f"The model puts {danger_p:.1%} on Danger tomorrow. Extreme Danger never happened in the 2021 to 2025 data, "
+               "so the model cannot predict it.")
 
 with st.expander("About this model and its limits"):
     st.markdown(

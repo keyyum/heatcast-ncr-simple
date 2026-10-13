@@ -49,6 +49,20 @@ assert list(INPUTS) == WEATHER_COLUMNS
 
 DANGER = C.DANGER
 
+# ----------------------------------------------------------------------------------------------------------------------
+# The map (one dot per city; the city that was asked about is coloured by its guessed level for tomorrow)
+# ----------------------------------------------------------------------------------------------------------------------
+LOCATIONS_FILE = Path(__file__).resolve().parent / "city_locations.csv"      # City, Latitude, Longitude (from data/original)
+LEVEL_COLORS = {                     # RGB, close to the usual heat-warning colours
+    "Not Hazardous": (46, 160, 67),
+    "Caution": (240, 200, 0),
+    "Extreme Caution": (240, 130, 20),
+    "Danger": (215, 30, 30),
+    "Extreme Danger": (110, 0, 0),
+}
+LEVEL_SQUARES = {"Not Hazardous": "🟩", "Caution": "🟨", "Extreme Caution": "🟧", "Danger": "🟥", "Extreme Danger": "🟫"}
+NEUTRAL_COLOR = (150, 150, 150)
+
 
 def load_training_data() -> pd.DataFrame:
     """The training days (2021-01-01 to 2024-12-27). The test days are not loaded into the app."""
@@ -159,3 +173,29 @@ def predict_level(model, clean: dict) -> Prediction:
     proba = pd.Series(model.predict_proba(X)[0], index=model.classes_).reindex(LEVELS).fillna(0.0)
     return Prediction(level=str(proba.idxmax()), probabilities=proba,
                       today_level=str(to_level(pd.Series([clean["HeatIndex_Max_Today"]])).iloc[0]))
+
+
+def load_city_locations() -> pd.DataFrame:
+    return pd.read_csv(LOCATIONS_FILE)
+
+
+def build_map_data(locations: pd.DataFrame, selected: str | None = None, prediction: Prediction | None = None) -> pd.DataFrame:
+    """One row per city for the map. Without a prediction every city is a small grey dot. With one, the chosen city is a big dot in
+    the colour of its guessed level (the other cities stay grey: the model only knows the weather that was typed in for that city).
+    Columns: City, Latitude, Longitude, color (R, G, B), radius (metres), label (name shown on the map), tooltip (hover text)."""
+    df = locations.copy()
+    df["color"] = [list(NEUTRAL_COLOR)] * len(df)
+    df["radius"] = 1100.0
+    df["label"] = df["City"]
+    df["tooltip"] = df["City"]
+    if prediction is not None and selected is not None:
+        if selected not in set(df["City"]):
+            raise ValueError(f"unknown city {selected!r}")
+        i = df.index[df["City"] == selected][0]
+        top = prediction.probabilities.sort_values(ascending=False)
+        top = top[top >= 0.005]
+        df.at[i, "color"] = list(LEVEL_COLORS[prediction.level])
+        df.at[i, "radius"] = 2600.0
+        df.at[i, "label"] = f"{selected}: {prediction.level}"
+        df.at[i, "tooltip"] = f"{selected}: tomorrow {prediction.level} ({', '.join(f'{k} {v:.0%}' for k, v in top.items())})"
+    return df

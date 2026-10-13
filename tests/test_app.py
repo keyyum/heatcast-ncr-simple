@@ -148,6 +148,76 @@ class Prediction(unittest.TestCase):
         self.assertEqual(len(self.train), 23312)
 
 
+class MapData(unittest.TestCase):
+    """The map: where the 16 cities are, and how the chosen city is coloured."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.locations = A.load_city_locations()
+        cls.summary = A.training_summary(A.load_training_data())
+        cls.model = A.build_model(A.load_training_data(), n_estimators=20)
+
+    def prediction(self, **change):
+        return A.predict_level(self.model, A.validate_inputs({**VALID, **change}, self.summary).clean)
+
+    def test_locations_cover_exactly_the_16_cities_of_the_data(self):
+        self.assertEqual(sorted(self.locations["City"]), self.summary["cities"])
+        self.assertTrue(self.locations["City"].is_unique)
+
+    def test_locations_are_inside_metro_manila_and_match_the_original_file(self):
+        import pandas as pd
+        self.assertTrue(self.locations["Latitude"].between(14.3, 14.8).all())
+        self.assertTrue(self.locations["Longitude"].between(120.9, 121.2).all())
+        original = pd.read_csv(ROOT / "data" / "original" / "ph_heat_index_next_day_16cities.csv",
+                               usecols=["City", "Latitude", "Longitude"]).drop_duplicates().set_index("City")
+        for _, row in self.locations.iterrows():
+            self.assertAlmostEqual(row["Latitude"], original.loc[row["City"], "Latitude"], places=5, msg=row["City"])
+            self.assertAlmostEqual(row["Longitude"], original.loc[row["City"], "Longitude"], places=5, msg=row["City"])
+
+    def test_before_a_guess_every_city_is_a_small_grey_dot(self):
+        m = A.build_map_data(self.locations)
+        self.assertEqual(len(m), 16)
+        self.assertTrue(all(tuple(c) == A.NEUTRAL_COLOR for c in m["color"]))
+        self.assertEqual(m["radius"].nunique(), 1)
+        self.assertEqual(list(m["label"]), list(m["City"]))
+
+    def test_after_a_guess_only_the_chosen_city_is_coloured_and_bigger(self):
+        p = self.prediction()
+        m = A.build_map_data(self.locations, "Manila", p).set_index("City")
+        self.assertEqual(tuple(m.loc["Manila", "color"]), A.LEVEL_COLORS[p.level])
+        self.assertGreater(m.loc["Manila", "radius"], m.drop("Manila")["radius"].max())
+        self.assertTrue(all(tuple(c) == A.NEUTRAL_COLOR for c in m.drop("Manila")["color"]))
+        self.assertIn(p.level, m.loc["Manila", "label"])
+        self.assertIn("Manila", m.loc["Manila", "tooltip"])
+
+    def test_every_level_has_a_valid_distinct_colour(self):
+        self.assertEqual(set(A.LEVEL_COLORS), set(A.LEVELS))
+        self.assertEqual(len(set(A.LEVEL_COLORS.values())), 5)
+        for rgb in A.LEVEL_COLORS.values():
+            self.assertTrue(len(rgb) == 3 and all(0 <= v <= 255 for v in rgb))
+
+    def test_the_colour_follows_the_guessed_level(self):
+        hot = self.prediction(HeatIndex_Max_Today=46.0, Temp_Min=29.0, SolarRadiation_Total=7000.0)
+        cool = self.prediction(HeatIndex_Max_Today=29.0, Temp_Min=24.0, Rainfall_Total=90.0, Pressure_Mean=1003.0,
+                               SolarRadiation_Total=1500.0)
+        self.assertNotEqual(hot.level, cool.level)
+        for city, p in (("Malabon", hot), ("Muntinlupa", cool)):
+            m = A.build_map_data(self.locations, city, p).set_index("City")
+            self.assertEqual(tuple(m.loc[city, "color"]), A.LEVEL_COLORS[p.level])
+
+    def test_every_city_can_be_the_chosen_one(self):
+        p = self.prediction()
+        for city in self.locations["City"]:
+            m = A.build_map_data(self.locations, city, p)
+            self.assertEqual(int((m["radius"] > 2000).sum()), 1, city)
+
+    def test_an_unknown_city_is_refused_and_the_input_is_not_changed(self):
+        before = self.locations.copy()
+        with self.assertRaises(ValueError):
+            A.build_map_data(self.locations, "Cebu", self.prediction())
+        self.assertTrue(before.equals(self.locations))
+
+
 class Screen(unittest.TestCase):
     """The real Streamlit page, run without a browser."""
 
@@ -185,6 +255,22 @@ class Screen(unittest.TestCase):
         self.assertEqual(len(at.selectbox), 1)
         self.assertEqual(len(at.error), 0)
         self.assertEqual(len(at.get("progress")), 0)
+
+    def maps(self, at):
+        return at.get("deck_gl_json_chart")
+
+    def test_the_map_is_on_the_page_from_the_start(self):
+        self.assertEqual(len(self.maps(self.app())), 1)
+
+    def test_map_stays_neutral_when_the_input_has_errors(self):
+        at = self.submit(self.app(), Rainfall_Total=-5.0)
+        self.assertEqual(len(self.maps(at)), 1)
+        self.assertNotIn("tomorrow", str(self.maps(at)[0].proto.json))
+
+    def test_map_shows_the_chosen_city_after_a_guess(self):
+        at = self.submit(self.app())
+        self.assertEqual(len(self.maps(at)), 1)
+        self.assertIn("Manila: tomorrow", str(self.maps(at)[0].proto.json))
 
     def test_empty_form_reports_every_missing_value_and_gives_no_prediction(self):
         at = self.app()

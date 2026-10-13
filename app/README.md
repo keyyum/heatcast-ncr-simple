@@ -33,12 +33,21 @@ model, change `MODEL_CONFIG` / `build_model` in `app/app_logic.py`: the screen a
 Hard limits: heat index 10 to 60 °C, minimum temperature 10 to 40 °C, rain 0 to 500 mm, pressure 950 to 1050 hPa, sunshine 0 to 10,000 Wh/m².
 All problems are shown at once, never as a crash.
 
-## Tests (`tests/test_app.py`, 24 tests)
+## The map
+
+Below the result, a map of Metro Manila shows the 16 cities as dots (`app/city_locations.csv`, coordinates from `data/original`). Before a guess every
+dot is grey. After a guess, the city that was asked about becomes a big dot in the colour of its guessed level for tomorrow (yellow Caution,
+orange Extreme Caution, red Danger); hover for the probabilities. **Only that city is coloured**: the model only knows the weather that was typed in
+for it, so the app does not invent a level for the other cities. The street map underneath needs an internet connection.
+
+## Tests (`tests/test_app.py`, 35 tests)
 
 * **Valid**: normal input, numbers typed as text, all 16 cities, probabilities add up to 1, a very hot day is more dangerous than a cool rainy day.
 * **Invalid**: missing (empty, spaces, NaN), text, infinity, impossible values, unknown city, several errors at once.
 * **Boundary**: every hard limit accepted and just beyond it refused, training-range edges (no warning) and just outside (warning),
   zero rain, the PAGASA level boundaries for today's level (26.99 / 27 / 32.99 / 33 / 41.99 / 42), the extreme corners of the input space.
+* **The map**: the 16 locations match the data and the original file and lie inside Metro Manila, grey before a guess, only the chosen city
+  coloured and bigger afterwards, one distinct colour per level, every city can be chosen, an unknown city is refused.
 * **The real page** (run headless): empty page, empty form (5 errors, no prediction), one missing value named, valid input (5 probabilities),
   impossible value (error), value on the limit, unusual value (warning and prediction).
 
