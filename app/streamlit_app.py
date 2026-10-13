@@ -32,7 +32,7 @@ LOCATIONS = A.load_city_locations()
 
 def show_map(selected=None, result=None):
     """Metro Manila with one dot per city. Only the city that was asked about is coloured, by its guessed level for tomorrow."""
-    data = A.build_map_data(LOCATIONS, selected, result)
+    data = A.build_map_data(LOCATIONS, selected, result).sort_values("radius", kind="stable")   # the chosen city is drawn last, on top
     dots = pdk.Layer("ScatterplotLayer", data, get_position=["Longitude", "Latitude"], get_fill_color="color", get_radius="radius",
                      radius_min_pixels=6, radius_max_pixels=30, stroked=True, get_line_color=[255, 255, 255],
                      line_width_min_pixels=2, pickable=True)
@@ -46,8 +46,8 @@ def show_map(selected=None, result=None):
                     height=480)
     legend = "  ".join(f"{A.LEVEL_SQUARES[lv]} {lv}" for lv in ["Caution", "Extreme Caution", "Danger"])
     if result is None:
-        st.caption("Choose a city and click the button: its dot on the map will take the colour of tomorrow's guessed level. "
-                   f"Colours: {legend}.")
+        st.caption(f"🟦 {selected} is selected. Fill in today's weather and click the button: the dot will take the colour of "
+                   f"tomorrow's guessed level ({legend}). The other cities stay grey.")
     else:
         st.caption(f"{legend}. Only {selected} is coloured, because the model uses the weather typed in for that city. "
                    "The grey dots are the other cities. Hover over a dot for its name.")
@@ -56,8 +56,11 @@ st.title("HeatCast NCR")
 st.write("Enter **today's** weather for a city in Metro Manila. The app guesses how hot tomorrow will **feel**, "
          "as one of the official PAGASA heat levels. All five boxes are needed; the grey hint shows a typical value.")
 
+# The city picker is outside the form so that the map reacts as soon as another city is chosen.
+city = st.selectbox("City", summary["cities"], index=summary["cities"].index("Manila"))
+map_slot = st.container()                        # the map sits here, above the form, and is filled in once the result is known
+
 with st.form("inputs"):
-    city = st.selectbox("City", summary["cities"], index=summary["cities"].index("Manila"))
     cols = st.columns(2)
     raw = {"City": city}
     for i, (col, meta) in enumerate(A.INPUTS.items()):
@@ -70,8 +73,7 @@ with st.form("inputs"):
 check = A.validate_inputs(raw, summary) if submitted else None
 for message in (check.errors if check else []):
     st.error(message)
-if not (check and check.ok):
-    show_map()                                   # nothing guessed yet: all cities grey
+result = None
 
 if check and check.ok:
     for message in check.warnings:
@@ -87,14 +89,15 @@ if check and check.ok:
     else:
         st.success(f"**Tomorrow in {city}: {result.level}.**")
 
-    show_map(city, result)
-
     st.subheader("How sure is the model?")
     for level, p in result.probabilities.items():
         st.progress(float(p), text=f"{level}: {p:.1%}")
     st.caption(f"Today's heat index is already in **{result.today_level}**. "
                f"The model puts {danger_p:.1%} on Danger tomorrow. Extreme Danger never happened in the 2021 to 2025 data, "
                "so the model cannot predict it.")
+
+with map_slot:
+    show_map(city, result)                       # blue = chosen city; its level colour once the guess is made
 
 with st.expander("About this model and its limits"):
     st.markdown(

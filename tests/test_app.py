@@ -181,6 +181,22 @@ class MapData(unittest.TestCase):
         self.assertEqual(m["radius"].nunique(), 1)
         self.assertEqual(list(m["label"]), list(m["City"]))
 
+    def test_choosing_a_city_highlights_it_in_blue_before_any_guess(self):
+        m = A.build_map_data(self.locations, "Manila").set_index("City")
+        self.assertEqual(tuple(m.loc["Manila", "color"]), A.HIGHLIGHT_COLOR)
+        self.assertNotIn(A.HIGHLIGHT_COLOR, A.LEVEL_COLORS.values())        # blue never means a level
+        self.assertGreater(m.loc["Manila", "radius"], m.drop("Manila")["radius"].max())
+        self.assertTrue(all(tuple(c) == A.NEUTRAL_COLOR for c in m.drop("Manila")["color"]))
+        self.assertIn("selected", m.loc["Manila", "tooltip"])
+
+    def test_the_guess_changes_the_colour_of_the_chosen_city_only(self):
+        before = A.build_map_data(self.locations, "Pasig").set_index("City")
+        after = A.build_map_data(self.locations, "Pasig", self.prediction()).set_index("City")
+        self.assertNotEqual(list(before.loc["Pasig", "color"]), list(after.loc["Pasig", "color"]))
+        for city in before.index.drop("Pasig"):                              # the other 15 are identical before and after
+            self.assertEqual(list(before.loc[city, "color"]), list(after.loc[city, "color"]))
+            self.assertEqual(before.loc[city, "radius"], after.loc[city, "radius"])
+
     def test_after_a_guess_only_the_chosen_city_is_coloured_and_bigger(self):
         p = self.prediction()
         m = A.build_map_data(self.locations, "Manila", p).set_index("City")
@@ -215,6 +231,8 @@ class MapData(unittest.TestCase):
         before = self.locations.copy()
         with self.assertRaises(ValueError):
             A.build_map_data(self.locations, "Cebu", self.prediction())
+        with self.assertRaises(ValueError):
+            A.build_map_data(self.locations, "Cebu")
         self.assertTrue(before.equals(self.locations))
 
 
@@ -261,6 +279,27 @@ class Screen(unittest.TestCase):
 
     def test_the_map_is_on_the_page_from_the_start(self):
         self.assertEqual(len(self.maps(self.app())), 1)
+
+    def test_manila_is_highlighted_at_the_start_and_the_other_city_when_chosen(self):
+        at = self.app()
+        self.assertIn("Manila (selected)", str(self.maps(at)[0].proto.json))
+        at.selectbox[0].select("Malabon").run()                  # the picker is outside the form: the map reacts at once
+        self.assertFalse(at.exception, at.exception)
+        text = str(self.maps(at)[0].proto.json)
+        self.assertIn("Malabon (selected)", text)
+        self.assertNotIn("Manila (selected)", text)
+        self.assertEqual(len(at.get("progress")), 0)             # no guess yet
+
+    def test_the_chosen_city_changes_colour_when_the_guess_is_made(self):
+        at = self.app()
+        at.selectbox[0].select("Marikina").run()
+        before = str(self.maps(at)[0].proto.json)
+        self.assertIn("Marikina (selected)", before)
+        self.assertNotIn("tomorrow", before)
+        self.submit(at)
+        after = str(self.maps(at)[0].proto.json)
+        self.assertIn("Marikina: tomorrow", after)
+        self.assertNotIn("(selected)", after)
 
     def test_map_stays_neutral_when_the_input_has_errors(self):
         at = self.submit(self.app(), Rainfall_Total=-5.0)

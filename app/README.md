@@ -35,19 +35,24 @@ All problems are shown at once, never as a crash.
 
 ## The map
 
-Below the result, a map of Metro Manila shows the 16 cities as dots (`app/city_locations.csv`, coordinates from `data/original`). Before a guess every
-dot is grey. After a guess, the city that was asked about becomes a big dot in the colour of its guessed level for tomorrow (yellow Caution,
-orange Extreme Caution, red Danger); hover for the probabilities. **Only that city is coloured**: the model only knows the weather that was typed in
-for it, so the app does not invent a level for the other cities. The street map underneath needs an internet connection.
+A map of Metro Manila above the form shows the 16 cities as dots (`app/city_locations.csv`, coordinates from `data/original`).
+* **Choosing a city** (the picker sits above the map, outside the form) highlights its dot in **blue** at once; Manila is chosen at the start.
+* **Clicking "Guess tomorrow's level"** turns that dot into the colour of its guessed level (yellow Caution, orange Extreme Caution, red Danger).
+  Hover over it for the probabilities.
+* **The other 15 cities always stay grey.** The model only knows the weather that was typed in for the chosen city, so the app does not invent a
+  level for the others. Choosing another city clears the previous result.
 
-## Tests (`tests/test_app.py`, 35 tests)
+The street map underneath needs an internet connection.
+
+## Tests (`tests/test_app.py`, 39 tests)
 
 * **Valid**: normal input, numbers typed as text, all 16 cities, probabilities add up to 1, a very hot day is more dangerous than a cool rainy day.
 * **Invalid**: missing (empty, spaces, NaN), text, infinity, impossible values, unknown city, several errors at once.
 * **Boundary**: every hard limit accepted and just beyond it refused, training-range edges (no warning) and just outside (warning),
   zero rain, the PAGASA level boundaries for today's level (26.99 / 27 / 32.99 / 33 / 41.99 / 42), the extreme corners of the input space.
-* **The map**: the 16 locations match the data and the original file and lie inside Metro Manila, grey before a guess, only the chosen city
-  coloured and bigger afterwards, one distinct colour per level, every city can be chosen, an unknown city is refused.
+* **The map**: the 16 locations match the data and the original file and lie inside Metro Manila; grey with nothing chosen, blue for the chosen
+  city before the guess, its level colour after it, the other 15 unchanged; one distinct colour per level; every city can be chosen; an unknown
+  city is refused; on the real page the highlight follows the picker and changes colour when the guess is made.
 * **The real page** (run headless): empty page, empty form (5 errors, no prediction), one missing value named, valid input (5 probabilities),
   impossible value (error), value on the limit, unusual value (warning and prediction).
 

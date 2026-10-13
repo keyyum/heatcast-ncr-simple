@@ -62,6 +62,7 @@ LEVEL_COLORS = {                     # RGB, close to the usual heat-warning colo
 }
 LEVEL_SQUARES = {"Not Hazardous": "🟩", "Caution": "🟨", "Extreme Caution": "🟧", "Danger": "🟥", "Extreme Danger": "🟫"}
 NEUTRAL_COLOR = (150, 150, 150)
+HIGHLIGHT_COLOR = (35, 105, 225)      # the chosen city before its level is guessed (blue is not used by any level)
 
 
 def load_training_data() -> pd.DataFrame:
@@ -180,22 +181,30 @@ def load_city_locations() -> pd.DataFrame:
 
 
 def build_map_data(locations: pd.DataFrame, selected: str | None = None, prediction: Prediction | None = None) -> pd.DataFrame:
-    """One row per city for the map. Without a prediction every city is a small grey dot. With one, the chosen city is a big dot in
-    the colour of its guessed level (the other cities stay grey: the model only knows the weather that was typed in for that city).
+    """One row per city for the map. Three states:
+      * nothing chosen                -> every city is a small grey dot
+      * a city chosen, no guess yet   -> that city is a big blue dot (highlighted), the others stay grey
+      * a city chosen and guessed     -> that city is a big dot in the colour of its guessed level, the others stay grey
+    (Only the chosen city is ever coloured: the model only knows the weather that was typed in for that city.)
     Columns: City, Latitude, Longitude, color (R, G, B), radius (metres), label (name shown on the map), tooltip (hover text)."""
     df = locations.copy()
     df["color"] = [list(NEUTRAL_COLOR)] * len(df)
     df["radius"] = 1100.0
     df["label"] = df["City"]
     df["tooltip"] = df["City"]
-    if prediction is not None and selected is not None:
-        if selected not in set(df["City"]):
-            raise ValueError(f"unknown city {selected!r}")
-        i = df.index[df["City"] == selected][0]
+    if selected is None:
+        return df
+    if selected not in set(df["City"]):
+        raise ValueError(f"unknown city {selected!r}")
+    i = df.index[df["City"] == selected][0]
+    df.at[i, "radius"] = 2600.0
+    if prediction is None:
+        df.at[i, "color"] = list(HIGHLIGHT_COLOR)
+        df.at[i, "tooltip"] = f"{selected} (selected)"
+    else:
         top = prediction.probabilities.sort_values(ascending=False)
         top = top[top >= 0.005]
         df.at[i, "color"] = list(LEVEL_COLORS[prediction.level])
-        df.at[i, "radius"] = 2600.0
         df.at[i, "label"] = f"{selected}: {prediction.level}"
         df.at[i, "tooltip"] = f"{selected}: tomorrow {prediction.level} ({', '.join(f'{k} {v:.0%}' for k, v in top.items())})"
     return df
