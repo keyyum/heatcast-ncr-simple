@@ -39,7 +39,7 @@ Rows: 40 *Not Hazardous*, 3,954 *Caution*, 22,994 *Extreme Caution*, 2,180 *Dang
 | `tests/` | automatic checks (`python -m unittest discover -s tests -v`) |
 | `notebooks/` | one notebook per person (see below), and `05_final_test.ipynb` (the one check on the test days) |
 | `models/` | empty: the app trains its model when it starts, so no model file is stored |
-| `results/` | the saved scores, tables and figures of each notebook (`results/random_forest/`, `results/final_test/`) |
+| `results/` | the saved scores, tables and figures of each notebook (`results/eda/`, `results/random_forest/`, `results/final_test/`) |
 | `app/` | the Streamlit app (`streamlit run app/streamlit_app.py`), see [`app/README.md`](app/README.md) |
 | `documentation/` | plain-language guide and the data dictionary |
 | `paper/` | the final paper (later) |
@@ -48,7 +48,7 @@ Rows: 40 *Not Hazardous*, 3,954 *Caution*, 22,994 *Extreme Caution*, 2,180 *Dang
 
 1. **Define the problem**: done (this README).
 2. **Describe the data**: done (`documentation/data_dictionary.md`, `data/original/SOURCE.md`).
-3. **Explore the data (EDA)**: `notebooks/01_eda.ipynb`, Marc Lawrence David. At least 5 useful charts, each with a written finding (one of them: the Danger share per city).
+3. **Explore the data (EDA)**: done, `notebooks/01_eda.ipynb` (Marc Lawrence David): 7 charts (E1 to E7, in `results/eda/`), each with a written finding and a decision.
 4. **Prepare the data**: done and kept tiny: the split, the 5 folds, the scaling and the city columns, and the scoring are in `src/common.py`.
 5. **Train the three models**, each on the same split and folds:
    `notebooks/02_logistic_regression.ipynb` (Harry Verdeflor), `notebooks/03_random_forest.ipynb` (Edrian Tala),
