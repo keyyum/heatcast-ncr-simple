@@ -36,13 +36,15 @@ Rows: 40 *Not Hazardous*, 3,954 *Caution*, 22,994 *Extreme Caution*, 2,180 *Dang
 | `data/processed/ncr_city_daily.csv` | **the simple dataset** made from the original by `src/make_dataset.py` |
 | `src/make_dataset.py` | the one data step: original → simple dataset |
 | `src/common.py` | shared tools: load the data, split train/test, 5 folds, preprocessing, scoring. **All three models use it.** |
+| `src/compare_models.py` | the three selected models side by side on the same 5 folds, with per-level scores (`results/comparison/`) |
+| `src/final_model.py` | fits the selected Random Forest on the training days and saves it to `models/` |
 | `tests/` | automatic checks (`python -m unittest discover -s tests -v`) |
 | `notebooks/` | one notebook per person (see below), and `05_final_test.ipynb` (the one check on the test days) |
-| `models/` | empty: the app trains its model when it starts, so no model file is stored |
-| `results/` | the saved scores, tables and figures of each notebook (`results/eda/`, `results/random_forest/`, `results/final_test/`) |
+| `models/` | `heatcast_random_forest.joblib`: the selected model with its preprocessing, the file the app loads |
+| `results/` | the saved scores, tables and figures of each notebook and script (`results/eda/`, `results/random_forest/`, `results/comparison/`, `results/final_test/`) |
 | `app/` | the Streamlit app (`streamlit run app/streamlit_app.py`), see [`app/README.md`](app/README.md) |
-| `documentation/` | plain-language guide and the data dictionary |
-| `paper/` | the final paper (later) |
+| `documentation/` | **technical documentation** (`technical_documentation.md`, `.docx`, `.pdf`), the data dictionary, a plain-language guide, sample inputs and outputs, and app screenshots |
+| `paper/` | the final paper (`HeatCast_NCR_IMRaD_Paper.docx` and `.pdf`, IEEE layout) and its figures (`paper/figures/`, made by `src/paper_figures.py`) |
 
 ## How the work goes (7 steps) and who does what
 
@@ -55,15 +57,20 @@ Rows: 40 *Not Hazardous*, 3,954 *Caution*, 22,994 *Extreme Caution*, 2,180 *Dang
    `notebooks/04_gradient_boosting.ipynb` (Marc Lawrence David).
 6. **Compare and pick the best model**, then check it **once** on the test days: done. The group picked the Random Forest
    (workspace Section 6.3); `notebooks/05_final_test.ipynb` checked it once (workspace Section 6.4, `results/final_test/`).
-7. **Deploy** it in a small Streamlit app (`app/`): done, with the selected Random Forest, at https://heatcast-ncr.streamlit.app/.
+7. **Deploy** it in a small Streamlit app (`app/`): done, with the selected Random Forest (loaded from `models/heatcast_random_forest.joblib`), at https://heatcast-ncr.streamlit.app/.
 
 ## Quick start
 
 ```bash
 pip install -r requirements.txt
 python src/make_dataset.py                 # rebuilds data/processed/ncr_city_daily.csv (optional, it is already there)
-python -m unittest discover -s tests -v    # 72 checks (48 of them for the app), about 20 seconds
+python -m unittest discover -s tests -v    # 75 checks (51 of them for the app), about 30 seconds
+python src/compare_models.py               # the three models on the same folds, with per-level scores (about 1 minute)
+python src/final_model.py                  # saves the selected model to models/ (the same file byte for byte)
+streamlit run app/streamlit_app.py         # the app
 ```
+
+Use Python 3.11 or newer. `requirements.txt` pins exact versions so the saved model loads with the scikit-learn it was saved with.
 
 At the top of a notebook (the notebooks live in `notebooks/`):
 
@@ -95,6 +102,17 @@ It goes first in the pipeline, so it learns its numbers from the training days o
 The "copy today" rule (predict that tomorrow has the same level as today, in the same city) gets macro F1 **0.620 ± 0.102** (**0.679 ± 0.051** over the three core levels), accuracy 0.846 and Danger recall 0.518 on the 5 folds (0.675, 0.824 and 0.597 on the test days). It is hard to beat: today's heat index already says a lot about tomorrow. A model is only useful if it does better.
 
 Good to know: the first fold learns from only 246 days (about 8 months), so it is the weakest practice round.
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `pip install` fails on numpy or pandas | use Python 3.11 or newer |
+| the app says the saved model file could not be read | `pip install -r requirements.txt`, then `python src/final_model.py` (the app keeps working meanwhile: it trains the same model) |
+| `ModuleNotFoundError: common` in a notebook | start the notebook from `notebooks/`, or run `sys.path.append("../src")` first |
+| the live app shows an error right after an update | Manage app, ⋮, Reboot app (see `app/README.md`) |
+
+More in [`documentation/technical_documentation.pdf`](documentation/technical_documentation.pdf).
 
 ## Where the data comes from
 

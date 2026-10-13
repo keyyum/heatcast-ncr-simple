@@ -5,7 +5,6 @@ Run it from the project folder:   streamlit run app/streamlit_app.py
 from __future__ import annotations
 
 import importlib
-import os
 import sys
 from pathlib import Path
 
@@ -18,29 +17,30 @@ import app_logic as A  # noqa: E402
 
 # On Streamlit Community Cloud a new version of the code is pulled without restarting Python, so the modules imported by an earlier
 # version can stay in memory and no longer match this file (AttributeError on a new function). Re-reading them on every run prevents that.
-for _name in ("make_dataset", "common", "app_logic"):
+for _name in ("make_dataset", "common", "final_model", "app_logic"):
     if _name in sys.modules:
         importlib.reload(sys.modules[_name])
-
-# The number of trees can be lowered for quick tests (HEATCAST_APP_TREES=30); the real app uses the 500 of Section 5.2.
-N_TREES = int(os.environ.get("HEATCAST_APP_TREES", A.MODEL_CONFIG["n_estimators"]))
 
 st.set_page_config(page_title="HeatCast NCR", page_icon="🌡️", layout="centered")
 
 
 def code_version() -> tuple:
     """Changes whenever the code or the data file is replaced, so a new deploy trains a fresh model instead of reusing the old one."""
-    files = [APP_DIR / "app_logic.py", APP_DIR.parent / "src" / "common.py", APP_DIR.parent / "src" / "make_dataset.py", A.C.DATA_FILE]
-    return tuple((f.name, f.stat().st_mtime_ns, f.stat().st_size) for f in files)
+    files = [APP_DIR / "app_logic.py", APP_DIR.parent / "src" / "common.py", APP_DIR.parent / "src" / "make_dataset.py",
+             APP_DIR.parent / "src" / "final_model.py", A.C.DATA_FILE, A.MODEL_FILE]
+    return tuple((f.name, f.stat().st_mtime_ns, f.stat().st_size) if f.exists() else (f.name,) for f in files)
 
 
-@st.cache_resource(show_spinner="Training the model on the 2021 to 2024 data (a few seconds, only once)...")
+@st.cache_resource(show_spinner="Loading the saved model (only once)...")
 def load_app(version: tuple):
     train = A.load_training_data()
-    return A.build_model(train, n_estimators=N_TREES), A.training_summary(train)
+    model, note = A.load_app_model(train)
+    return model, note, A.training_summary(train)
 
 
-model, summary = load_app(code_version())
+model, model_note, summary = load_app(code_version())
+if model_note:
+    st.info(model_note)
 LOCATIONS = A.load_city_locations()
 SHAPES = A.load_city_shapes()
 
@@ -112,7 +112,8 @@ with map_slot:
 
 with st.expander("About this model and its limits"):
     st.markdown(
-        "- **Model:** Random Forest (many decision trees that vote), trained on 2021-01-01 to 2024-12-27 data for the 16 cities.\n"
+        "- **Model:** Random Forest (many decision trees that vote), trained on 2021-01-01 to 2024-12-27 data for the 16 cities "
+        "and loaded from `models/heatcast_random_forest.joblib`.\n"
         "- **It is a decision aid, not a PAGASA advisory.** The labels come from a heat index calculated from weather-model "
         "estimates (ERA5), not from station readings.\n"
         "- **It catches most Danger days but also raises false alarms.** On the 2025 test days, which it never saw while it was "

@@ -1,0 +1,33 @@
+model,how,level,precision,recall,f1,true_rows
+Copy today rule,summed over the 5 check blocks,Not Hazardous,0.075,0.075,0.075,40.0
+Copy today rule,summed over the 5 check blocks,Caution,0.673,0.673,0.673,2548.0
+Copy today rule,summed over the 5 check blocks,Extreme Caution,0.905,0.905,0.905,15219.0
+Copy today rule,summed over the 5 check blocks,Danger,0.578,0.578,0.578,1553.0
+Logistic Regression,summed over the 5 check blocks,Not Hazardous,0.0,0.0,0.0,40.0
+Logistic Regression,summed over the 5 check blocks,Caution,0.749,0.618,0.677,2548.0
+Logistic Regression,summed over the 5 check blocks,Extreme Caution,0.878,0.955,0.915,15219.0
+Logistic Regression,summed over the 5 check blocks,Danger,0.717,0.33,0.452,1553.0
+Random Forest,summed over the 5 check blocks,Not Hazardous,0.0,0.0,0.0,40.0
+Random Forest,summed over the 5 check blocks,Caution,0.559,0.781,0.652,2548.0
+Random Forest,summed over the 5 check blocks,Extreme Caution,0.929,0.803,0.861,15219.0
+Random Forest,summed over the 5 check blocks,Danger,0.443,0.754,0.558,1553.0
+Gradient Boosting,summed over the 5 check blocks,Not Hazardous,0.0,0.0,0.0,40.0
+Gradient Boosting,summed over the 5 check blocks,Caution,0.555,0.763,0.642,2548.0
+Gradient Boosting,summed over the 5 check blocks,Extreme Caution,0.927,0.799,0.858,15219.0
+Gradient Boosting,summed over the 5 check blocks,Danger,0.437,0.766,0.556,1553.0
+Copy today rule,mean over the 5 folds,Not Hazardous,0.032,0.032,0.032,8.0
+Copy today rule,mean over the 5 folds,Caution,0.611,0.611,0.611,509.6
+Copy today rule,mean over the 5 folds,Extreme Caution,0.903,0.903,0.903,3043.8
+Copy today rule,mean over the 5 folds,Danger,0.527,0.518,0.522,310.6
+Logistic Regression,mean over the 5 folds,Not Hazardous,0.0,0.0,0.0,8.0
+Logistic Regression,mean over the 5 folds,Caution,0.717,0.538,0.599,509.6
+Logistic Regression,mean over the 5 folds,Extreme Caution,0.878,0.953,0.913,3043.8
+Logistic Regression,mean over the 5 folds,Danger,0.655,0.276,0.384,310.6
+Random Forest,mean over the 5 folds,Not Hazardous,0.0,0.0,0.0,8.0
+Random Forest,mean over the 5 folds,Caution,0.543,0.706,0.601,509.6
+Random Forest,mean over the 5 folds,Extreme Caution,0.928,0.799,0.858,3043.8
+Random Forest,mean over the 5 folds,Danger,0.402,0.672,0.5,310.6
+Gradient Boosting,mean over the 5 folds,Not Hazardous,0.0,0.0,0.0,8.0
+Gradient Boosting,mean over the 5 folds,Caution,0.524,0.693,0.588,509.6
+Gradient Boosting,mean over the 5 folds,Extreme Caution,0.926,0.797,0.856,3043.8
+Gradient Boosting,mean over the 5 folds,Danger,0.381,0.67,0.484,310.6

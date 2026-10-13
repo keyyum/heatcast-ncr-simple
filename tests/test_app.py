@@ -12,7 +12,6 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "app"))
-os.environ["HEATCAST_APP_TREES"] = "20"        # a small forest keeps the tests quick; the logic is the same
 
 import app_logic as A  # noqa: E402
 
@@ -110,7 +109,7 @@ class Prediction(unittest.TestCase):
     def setUpClass(cls):
         cls.train = A.load_training_data()
         cls.summary = A.training_summary(cls.train)
-        cls.model = A.build_model(cls.train, n_estimators=20)
+        cls.model = A.F.load_model()          # the saved model the app uses
 
     def test_probabilities_cover_the_five_levels_and_add_up_to_one(self):
         p = A.predict_level(self.model, A.validate_inputs(VALID, self.summary).clean)
@@ -148,6 +147,45 @@ class Prediction(unittest.TestCase):
         self.assertEqual(len(self.train), 23312)
 
 
+class SavedModel(unittest.TestCase):
+    """The app loads the saved model (models/heatcast_random_forest.joblib), and it is the model reported in the paper."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.model = A.F.load_model()
+
+    def test_saved_model_is_the_selected_random_forest_with_its_preprocessing(self):
+        steps = dict(self.model.named_steps)
+        self.assertEqual(list(steps), ["columntransformer", "randomforestclassifier"])
+        rf = steps["randomforestclassifier"].get_params()
+        for key, value in A.MODEL_CONFIG.items():
+            if key != "n_jobs":
+                self.assertEqual(rf[key], value, key)
+        self.assertEqual(steps["columntransformer"].transformers[0][1], "passthrough")    # trees: the numbers are not scaled
+        self.assertEqual(list(steps["columntransformer"].transformers[0][2]), A.WEATHER_COLUMNS)
+
+    def test_saved_model_gives_the_final_test_results_of_notebook_05(self):
+        """Not a new evaluation: it checks that the saved file is the same model that was tested once in notebook 05."""
+        import json
+        from common import TARGET, FEATURES, load_data, split_train_test
+        expected = json.loads((ROOT / "results" / "final_test" / "summary.json").read_text())
+        _, test = split_train_test(load_data())
+        pred = self.model.predict(test[FEATURES])
+        danger = test[TARGET].to_numpy() == A.DANGER
+        self.assertEqual(int((danger & (pred == A.DANGER)).sum()), expected["danger_caught"])
+        self.assertEqual(int((pred == A.DANGER).sum()), expected["danger_called"])
+        self.assertAlmostEqual(float((pred == test[TARGET].to_numpy()).mean()), expected["test_scores"]["accuracy"], places=4)
+
+    def test_app_falls_back_to_training_the_same_model_when_the_file_cannot_be_read(self):
+        train = A.load_training_data()
+        model, note = A.load_app_model(train, path=ROOT / "models" / "no_such_file.joblib")
+        self.assertIn("could not be read", note)
+        x = train[A.C.FEATURES].iloc[:200]
+        np.testing.assert_array_equal(model.predict(x), self.model.predict(x))
+        model, note = A.load_app_model(train)
+        self.assertIsNone(note)
+
+
 class MapData(unittest.TestCase):
     """The map: where the 16 cities are, and how the chosen city is coloured."""
 
@@ -155,7 +193,7 @@ class MapData(unittest.TestCase):
     def setUpClass(cls):
         cls.locations = A.load_city_locations()
         cls.summary = A.training_summary(A.load_training_data())
-        cls.model = A.build_model(A.load_training_data(), n_estimators=20)
+        cls.model = A.F.load_model()
 
     def prediction(self, **change):
         return A.predict_level(self.model, A.validate_inputs({**VALID, **change}, self.summary).clean)
@@ -244,7 +282,7 @@ class MapShapes(unittest.TestCase):
         cls.shapes = A.load_city_shapes()
         cls.locations = A.load_city_locations()
         cls.summary = A.training_summary(A.load_training_data())
-        cls.model = A.build_model(A.load_training_data(), n_estimators=20)
+        cls.model = A.F.load_model()
 
     def prediction(self):
         return A.predict_level(self.model, A.validate_inputs(VALID, self.summary).clean)

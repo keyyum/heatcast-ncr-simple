@@ -1,13 +1,13 @@
 """The logic behind the Streamlit app (no screen code here, so it can be tested without a browser).
 
     check the inputs   ->   validate_inputs(raw, ranges)    (missing / not a number / impossible / unusual)
-    train the model    ->   build_model(train)              (the Random Forest of workspace Section 5.2, fitted on the training days)
+    get the model      ->   load_app_model(train)           (the saved pipeline in models/heatcast_random_forest.joblib)
     guess tomorrow     ->   predict_level(model, clean)     (level + probability of every level)
 
 The model is the one selected in workspace Section 6.3 (Random Forest: depth 12, 5 days per leaf, balanced class weights,
-500 trees). It is fitted here on the TRAINING days only, exactly like the model that was scored in Section 5.2, so the
-app never sees the test days (they were used once, in notebooks/05_final_test.ipynb). To switch to another model, change MODEL_CONFIG
-(or build_model) and nothing else in the app needs to change.
+500 trees), saved with its preprocessing by src/final_model.py. It was fitted on the TRAINING days only, exactly like the
+model that was scored in Section 5.2 and tested once in notebooks/05_final_test.ipynb, so the app never sees the test days.
+To switch to another model, change src/final_model.py, run it again, and nothing else in the app needs to change.
 """
 from __future__ import annotations
 
@@ -19,17 +19,17 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.pipeline import make_pipeline
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 import common as C  # noqa: E402  (shared split and preprocessing, so the app uses the same steps as the notebooks)
+import final_model as F  # noqa: E402  (the saved model and how it was built)
 from make_dataset import LEVELS, WEATHER_COLUMNS, to_level  # noqa: E402
 
-MODEL_CONFIG = dict(n_estimators=500, max_depth=12, min_samples_leaf=5, class_weight="balanced",
-                    random_state=C.RANDOM_STATE, n_jobs=-1)
+MODEL_CONFIG = F.MODEL_CONFIG
+MODEL_FILE = F.MODEL_FILE
+build_model = F.build_model           # make_preprocess(scale=False) + Random Forest, fitted on the given days
 
 # What each input is, in plain words, and the limits of what the app will accept.
 #   hard limit : outside it the value is impossible or a typing mistake -> the app refuses to predict
@@ -83,10 +83,15 @@ def training_summary(train: pd.DataFrame) -> dict:
     return {"cities": sorted(train["City"].unique()), "ranges": cols}
 
 
-def build_model(train: pd.DataFrame, **overrides):
-    """Same pipeline as notebooks/03_random_forest.ipynb: make_preprocess(scale=False) + Random Forest, fitted on the training days."""
-    rf = RandomForestClassifier(**{**MODEL_CONFIG, **overrides})
-    return make_pipeline(C.make_preprocess(scale=False), rf).fit(train[C.FEATURES], train[C.TARGET])
+def load_app_model(train: pd.DataFrame, path: Path = MODEL_FILE):
+    """The saved model, and a note for the page (None when all is well). If the file is missing or cannot be read (for example
+    with another scikit-learn version than requirements.txt), the same pipeline is fitted again on the training days, so the
+    app still works and gives the same guesses; the note says so."""
+    try:
+        return F.load_model(path), None
+    except Exception as error:  # noqa: BLE001  (any failure to read the file: fall back, never crash the page)
+        return build_model(train), (f"The saved model file could not be read ({type(error).__name__}), so the same model was "
+                                    "trained again from the 2021 to 2024 training days.")
 
 
 # ----------------------------------------------------------------------------------------------------------------------

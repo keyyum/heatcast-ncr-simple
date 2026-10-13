@@ -1,0 +1,13 @@
+type,case,City,HeatIndex_Max_Today,Temp_Min,Rainfall_Total,Pressure_Mean,SolarRadiation_Total,output,message
+Valid,A normal dry day,Manila,38.0,26.0,0.0,1010.0,5000.0,Extreme Caution (90%),none
+Valid,A very hot sunny day,Manila,45.5,29.0,0.0,1008.0,7000.0,Danger (90%),none
+Valid,A cool rainy day,Quezon,29.0,24.0,90.0,1003.0,1500.0,Caution (55%),none
+Valid,A hot day in a hot city,Malabon,42.0,27.5,0.0,1010.0,6500.0,Danger (87%),none
+Boundary,Rain exactly 0 mm (lower limit),Pasig,38.0,26.0,0.0,1010.0,5000.0,Extreme Caution (90%),none
+Boundary,Rain exactly 500 mm (upper limit),Pasig,38.0,26.0,500.0,1010.0,5000.0,Extreme Caution (79%),"Rain today: 500 mm is outside the 0 to 175.1 mm seen in the 2021 to 2024 training days, so the guess is less reliable."
+Boundary,Heat index 55 °C (above the data maximum),Manila,55.0,26.0,0.0,1010.0,5000.0,Danger (54%),"Today's highest heat index: 55 °C is outside the 26.13 to 47.63 °C seen in the 2021 to 2024 training days, so the guess is less reliable."
+Invalid,Rain -5 mm,Manila,38.0,26.0,-5.0,1010.0,5000.0,no prediction,Rain today: -5 mm is not possible here. Accepted values are 0 to 500 mm.
+Invalid,Heat index 200 °C,Manila,200.0,26.0,0.0,1010.0,5000.0,no prediction,Today's highest heat index: 200 °C is not possible here. Accepted values are 10 to 60 °C.
+Invalid,Pressure left empty,Manila,38.0,26.0,0.0,,5000.0,no prediction,Average air pressure today: please enter a value.
+Invalid,Text instead of a number,Manila,38.0,warm,0.0,1010.0,5000.0,no prediction,Today's lowest temperature: not a number. Enter a number in °C.
+Invalid,A city outside the data,Cebu,38.0,26.0,0.0,1010.0,5000.0,no prediction,Choose one of the 16 cities.
