@@ -44,7 +44,7 @@ Rows: 40 *Not Hazardous*, 3,954 *Caution*, 22,994 *Extreme Caution*, 2,180 *Dang
 | `results/` | the saved scores, tables and figures of each notebook and script (`results/eda/`, `results/random_forest/`, `results/comparison/`, `results/final_test/`) |
 | `app/` | the Streamlit app (`streamlit run app/streamlit_app.py`), see [`app/README.md`](app/README.md) |
 | `documentation/` | **technical documentation** (`technical_documentation.md`, `.docx`, `.pdf`), the data dictionary, a plain-language guide, sample inputs and outputs, and app screenshots |
-| `paper/` | the final paper (DOCX and PDF) |
+| `paper/` | the final paper (`HeatCast_NCR_IMRaD_Paper.docx` and `.pdf`, IEEE layout) and its figures (`paper/figures/`, made by `src/paper_figures.py`) |
 
 ## How the work goes (7 steps) and who does what
 
