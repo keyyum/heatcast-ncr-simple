@@ -71,16 +71,6 @@ function notes(s, no, title, who, time, text) {
 function card(s, x, y, w, h, fill, name) {
   s.addShape(pres.ShapeType.rect, { x, y, w, h, fill: { color: fill }, line: { type: "none" }, objectName: name });
 }
-function optionCards(s, opts, y, h) {   // A / B / C answer cards for the audience questions
-  const n = opts.length, gap = 0.3, w = (11.45 - gap * (n - 1)) / n;
-  opts.forEach(([letter, text, fill], i) => {
-    const x = 0.95 + i * (w + gap);
-    card(s, x, y, w, h, fill || HEX.cream, "Option " + letter);
-    s.addShape(pres.ShapeType.ellipse, { x: x + 0.3, y: y + 0.3, w: 0.7, h: 0.7, fill: { color: HEX.burnt }, line: { type: "none" }, objectName: "Option dot " + letter });
-    s.addText(letter, { x: x + 0.3, y: y + 0.3, w: 0.7, h: 0.7, fontFace: "Cambria", fontSize: 26, color: "FFFFFF", align: "center", valign: "middle", margin: 0, isTextBox: true });
-    s.addText(text, { x: x + 0.3, y: y + 1.15, w: w - 0.6, h: h - 1.35, fontSize: n === 2 ? 20 : 24, color: HEX.dark, margin: 0, valign: "top", isTextBox: true, objectName: "Option text " + letter });
-  });
-}
 
 // ================= 1. Title =================
 pres.addSection({ title: "Introduction" });
@@ -96,27 +86,28 @@ s.addText("Can machine learning predict tomorrow's heat level in Metro Manila be
 s.addText("CCMACLRL Introduction to Machine Learning  ·  COM241ML  ·  Dr. Armida P. Salazar", { x: 1.5, y: 6.1, w: W - 3,
   h: 0.4, fontSize: 14, color: C.text1, align: "center", isTextBox: true, objectName: "Course" });
 notes(s, 1, "Title", "Edrian", "20 seconds",
-  "Good morning. We are Edrian, Harry and Marc, and this is HeatCast NCR. Our question: can machine learning predict tomorrow's heat level in Metro Manila better than just copying today's level? Before we answer, a quick question for you.");
+  "Good morning. We are Edrian, Harry and Marc, and this is HeatCast NCR. Our question: can machine learning predict tomorrow's heat level in Metro Manila better than just copying today's level? Let's start with a simple example.");
 
-// ================= 2. Quick question =================
-s = content("QUICK QUESTION", "Introduction", "Raise your hand", 3.2, { bold: true });
-s.addText("Today, Manila's heat index reached 44 °C, which is Danger. What will tomorrow's level be?", { x: 1.4, y: 2.2, w: W - 2.8, h: 1.0,
-  fontFace: "Cambria", fontSize: 28, color: HEX.dark, align: "center", valign: "middle", isTextBox: true, objectName: "Question text" });
-const q2 = [["A", "Hotter", "Extreme Danger", "52 °C and up", "up", HEX.xdanger, "FFFFFF"],
-  ["B", "The same level", "Danger again", "42 to 51 °C", "same", HEX.danger, "FFFFFF"],
-  ["C", "Cooler", "Extreme Caution or lower", "below 42 °C", "down", HEX.ec, HEX.dark]];
-q2.forEach(([L, head, lvl, rng, ic, f, t], i) => {
-  const x = 0.95 + i * 3.88, y = 3.45, w = 3.69, h = 3.1;
-  card(s, x, y, w, h, HEX.cream, "Option " + L);
-  s.addShape(pres.ShapeType.ellipse, { x: x + 0.3, y: y + 0.3, w: 0.7, h: 0.7, fill: { color: HEX.burnt }, line: { type: "none" }, objectName: "Option dot " + L });
-  s.addText(L, { x: x + 0.3, y: y + 0.3, w: 0.7, h: 0.7, fontFace: "Cambria", fontSize: 26, color: "FFFFFF", align: "center", valign: "middle", margin: 0, isTextBox: true });
-  s.addImage({ path: ICON(ic), x: x + w - 1.15, y: y + 0.28, w: 0.8, h: 0.8, altText: head, objectName: "Option icon " + L });
-  s.addText(head, { x: x + 0.3, y: y + 1.2, w: w - 0.6, h: 0.6, fontFace: "Cambria", fontSize: 26, color: HEX.dark, margin: 0, valign: "middle", isTextBox: true, objectName: "Option head " + L });
-  s.addText([{ text: lvl, options: { bold: true, breakLine: true } }, { text: rng }], { x: x + 0.3, y: y + 1.95, w: w - 0.6, h: 0.85, fill: { color: f },
-    fontSize: 16, color: t, align: "center", valign: "middle", margin: 4, isTextBox: true, objectName: "Option level " + L });
+// ================= 2. The question, as an example =================
+s = content("OUR QUESTION", "Introduction", "One city, one day ahead", 3.6);
+s.addText("Today, Manila's heat index reached 44 °C, which is Danger. Tomorrow can go one of three ways:", { x: 1.2, y: 2.15, w: W - 2.4, h: 1.0,
+  fontFace: "Cambria", fontSize: 28, color: HEX.dark, align: "center", valign: "middle", isTextBox: true, objectName: "Example" });
+const q2 = [["Hotter", "Extreme Danger", "52 °C and up", "up", HEX.xdanger, "FFFFFF"],
+  ["Same level", "Danger again", "42 to 51 °C", "same", HEX.danger, "FFFFFF"],
+  ["Cooler", "Extreme Caution or lower", "below 42 °C", "down", HEX.ec, HEX.dark]];
+q2.forEach(([head, lvl, rng, ic, f, t], i) => {
+  const x = 0.95 + i * 3.88, y = 3.35, w = 3.69, h = 2.6;
+  card(s, x, y, w, h, HEX.cream, "Outcome " + head);
+  s.addImage({ path: ICON(ic), x: x + 0.3, y: y + 0.3, w: 0.8, h: 0.8, altText: head, objectName: "Outcome icon " + (i + 1) });
+  s.addText(head, { x: x + 1.3, y: y + 0.3, w: w - 1.6, h: 0.8, fontFace: "Cambria", fontSize: 26, color: HEX.dark, margin: 0, valign: "middle", isTextBox: true, objectName: "Outcome head " + (i + 1) });
+  s.addText([{ text: lvl, options: { bold: true, breakLine: true } }, { text: rng }], { x: x + 0.3, y: y + 1.4, w: w - 0.6, h: 0.9, fill: { color: f },
+    fontSize: 17, color: t, align: "center", valign: "middle", margin: 4, isTextBox: true, objectName: "Outcome level " + (i + 1) });
 });
-notes(s, 2, "Quick question", "Edrian", "30 seconds",
-  "Show of hands. Today Manila's heat index reached 44 degrees, which is Danger. Tomorrow will be: A, hotter, Extreme Danger; B, the same level, Danger again; C, cooler. Who says A? B? C? (Count quickly.) Let's see how often the same level is right.");
+s.addText("HeatCast NCR picks one of these for each of the 16 cities, every day.", { x: 0.95, y: 6.1, w: 11.45, h: 0.45,
+  fontFace: "Cambria", fontSize: 20, italic: true, color: HEX.burnt, align: "center", valign: "middle", isTextBox: true, objectName: "Our job" });
+notes(s, 2, "Our question", "Edrian", "30 seconds",
+  "Here is our question as an example. Today Manila's heat index reached 44 degrees, which is Danger. Tomorrow can go three ways: hotter, Extreme Danger; the same level, Danger again; or cooler. " +
+  "HeatCast NCR has to pick one of these, for each of the 16 cities, every day. So which one happens most often?");
 
 // ================= 3. Answer =================
 s = pres.addSlide({ masterName: "Statement", sectionTitle: "Introduction" });
@@ -134,7 +125,7 @@ for (let r = 0; r < 10; r++) for (let c = 0; c < 10; c++) {
 s.addText([{ text: "Filled: same level as the day before", options: { breakLine: true } }, { text: "Empty: the level changed" }],
   { x: gx, y: gy + 10 * sq + 0.15, w: 4.0, h: 0.65, fontSize: 14, color: HEX.peach, margin: 0, valign: "top", isTextBox: true, objectName: "Grid key" });
 notes(s, 3, "The answer: 82%", "Edrian", "20 seconds",
-  "Each square here is one percent of the city-days in 2025. In 82 out of every 100, tomorrow's level was the same as today's. So the simplest forecast, copy today, is already right most of the time. We call it the copy-today rule, and the real question of our project is whether machine learning can beat it.");
+  "Most often, the same level. Each square here is one percent of the city-days in 2025. In 82 out of every 100, tomorrow's level was the same as today's. So the simplest forecast, copy today, is already right most of the time. We call it the copy-today rule, and the real question of our project is whether machine learning can beat it.");
 
 // ================= 4. Problem and data =================
 s = content("THE PROBLEM AND THE DATA", "Introduction", "Who needs a one-day heat warning, and what we used", 6.6);
@@ -237,24 +228,25 @@ notes(s, 6, "A fair test, like an exam", "Harry", "1 minute",
   "Technically this is a chronological split with time-series cross-validation, and the score is macro F1.");
 
 // ================= 7. Which mistake is worse =================
-s = content("WHICH MISTAKE IS WORSE?", "Method", "Vote: raise your hand for A or B", 4.6, { bold: true });
-const q7 = [["A", "Missing a real Danger day", "Nobody prepares, and students play outside at 44 °C.", "The cost: someone may get heat exhaustion or heat stroke.", "run", "F8D5CF"],
-  ["B", "A false alarm", "Activities are moved indoors, but the day was not that hot.", "The cost: a change of plans for nothing.", "bell", HEX.cream]];
-q7.forEach(([L, head, what, cost, ic, f], i) => {
+s = content("WHICH MISTAKE IS WORSE?", "Method", "Every forecast is sometimes wrong, in one of two ways", 6.6);
+const q7 = [["Missing a real Danger day", "Nobody prepares, and students play outside at 44 °C.", "The cost: someone may get heat exhaustion or heat stroke.", "run", "F8D5CF", "WORSE", HEX.danger],
+  ["A false alarm", "Activities are moved indoors, but the day was not that hot.", "The cost: a change of plans for nothing.", "bell", HEX.cream, "LESS COSTLY", HEX.muted]];
+q7.forEach(([head, what, cost, ic, f, tag, tagc], i) => {
   const x = 0.95 + i * 5.875, y = 2.3, w = 5.575, h = 3.55;
-  card(s, x, y, w, h, f, "Option " + L);
-  s.addShape(pres.ShapeType.ellipse, { x: x + 0.35, y: y + 0.35, w: 0.75, h: 0.75, fill: { color: HEX.burnt }, line: { type: "none" }, objectName: "Option dot " + L });
-  s.addText(L, { x: x + 0.35, y: y + 0.35, w: 0.75, h: 0.75, fontFace: "Cambria", fontSize: 28, color: "FFFFFF", align: "center", valign: "middle", margin: 0, isTextBox: true });
-  s.addImage({ path: ICON(ic), x: x + w - 1.35, y: y + 0.3, w: 1.0, h: 1.0, altText: head, objectName: "Option icon " + L });
+  card(s, x, y, w, h, f, "Mistake " + (i + 1));
+  s.addImage({ path: ICON(ic), x: x + 0.35, y: y + 0.3, w: 1.0, h: 1.0, altText: head, objectName: "Mistake icon " + (i + 1) });
+  s.addText(tag, { x: x + w - 2.0, y: y + 0.35, w: 1.65, h: 0.42, fill: { color: tagc }, fontSize: 13, bold: true, color: "FFFFFF", charSpacing: 1,
+    align: "center", valign: "middle", margin: 0, isTextBox: true, objectName: "Mistake tag " + (i + 1) });
   s.addText(head, { x: x + 0.35, y: y + 1.3, w: w - 0.7, h: 0.6, fontFace: "Cambria", fontSize: 28, color: HEX.dark, margin: 0, valign: "middle", isTextBox: true });
   s.addText(what, { x: x + 0.35, y: y + 1.95, w: w - 0.7, h: 0.75, fontSize: 18, color: HEX.dark, margin: 0, valign: "top", isTextBox: true });
   s.addText(cost, { x: x + 0.35, y: y + 2.75, w: w - 0.7, h: 0.6, fontSize: 16, bold: true, color: HEX.burnt, margin: 0, valign: "top", isTextBox: true });
 });
-s.addText("Our choice: A is worse. That is why a model must first catch more Danger days than copy-today.", { x: 0.95, y: 6.05, w: 11.45, h: 0.5,
+s.addText("So our rule: a model must first catch more Danger days than copy-today.", { x: 0.95, y: 6.05, w: 11.45, h: 0.5,
   fontFace: "Cambria", fontSize: 20, italic: true, color: HEX.burnt, align: "center", valign: "middle", isTextBox: true, objectName: "Our choice" });
 notes(s, 7, "Which mistake is worse?", "Marc", "40 seconds",
-  "Every forecast makes mistakes, so we had to decide which mistake hurts more. Vote with your hands: A, missing a real Danger day, so nobody prepares and someone may get sick; or B, a false alarm, activities are moved for nothing. Who says A? B? " +
-  "We agreed A is worse: a missed Danger day can hurt people, while a false alarm costs a change of plans. That is why our rule asks a model to catch more Danger days first. Keep this in mind for the results.");
+  "Every forecast is sometimes wrong, and it can be wrong in two ways. One: it misses a real Danger day, so nobody prepares, students play outside at 44 degrees, and someone may get sick. " +
+  "Two: a false alarm, so activities are moved indoors on a day that was not that hot. " +
+  "We decided the first mistake is worse: a missed Danger day can hurt people, while a false alarm only costs a change of plans. That is why our rule asks a model to catch more Danger days first. Keep this in mind for the results.");
 
 // ================= 8. Three models =================
 s = content("THREE MODELS VS. COPY-TODAY", "Method", "Practice-quiz results: the average of the 5 quizzes", 6.4);
@@ -289,24 +281,27 @@ notes(s, 8, "Three models vs. copy-today", "Harry, Edrian, Marc", "1 minute 15 (
   "EDRIAN: Random Forest is 500 decision trees that vote. We told it that Danger days matter more, and it caught 67% of them, more than copy-today, with the best score of our three. By our rule, it was selected.\n" +
   "MARC: Gradient Boosting builds trees one after another, each fixing the last one's mistakes. It was almost tied with Random Forest, 0.643 against 0.653, so either would have worked.");
 
-// ================= 9. Guess =================
+// ================= 9. Danger days caught =================
 pres.addSection({ title: "Results" });
-s = content("YOUR GUESS", "Results", "The final exam: 2025, opened once", 5.2);
-s.addText("In 2025 there were 347 Danger days across the 16 cities. How many did our Random Forest catch?", { x: 1.4, y: 2.2, w: W - 2.8, h: 1.0,
-  fontFace: "Cambria", fontSize: 28, color: HEX.dark, align: "center", valign: "middle", isTextBox: true, objectName: "Guess question" });
-optionCards(s, [["A", "About 100"], ["B", "About 200"], ["C", "About 300"]], 3.4, 1.75);
-// a 0 to 347 scale with the three answers marked
-const sx = 1.45, sw = 10.45, sy = 5.75, per = sw / 347;
-s.addText("0", { x: sx - 0.5, y: sy - 0.05, w: 0.4, h: 0.35, fontSize: 14, color: HEX.muted, align: "right", margin: 0, isTextBox: true });
-s.addText("347", { x: sx + sw + 0.1, y: sy - 0.05, w: 0.6, h: 0.35, fontSize: 14, color: HEX.muted, margin: 0, isTextBox: true });
-s.addShape(pres.ShapeType.rect, { x: sx, y: sy, w: sw, h: 0.26, fill: { color: HEX.peach }, line: { type: "none" }, objectName: "Scale" });
-[["A", 100], ["B", 200], ["C", 300]].forEach(([L, v]) => {
-  s.addShape(pres.ShapeType.rect, { x: sx + v * per - 0.02, y: sy - 0.12, w: 0.04, h: 0.5, fill: { color: HEX.burnt }, line: { type: "none" }, objectName: "Tick " + L });
-  s.addText(L, { x: sx + v * per - 0.3, y: sy + 0.38, w: 0.6, h: 0.32, fontFace: "Cambria", fontSize: 16, bold: true, color: HEX.burnt, align: "center", margin: 0, isTextBox: true });
+s = content("DANGER DAYS CAUGHT", "Results", "The final exam: 2025, opened once", 5.2);
+s.addText("In 2025 there were 347 Danger days across the 16 cities. Here is how many got a warning the day before.", { x: 1.2, y: 2.15, w: W - 2.4, h: 1.0,
+  fontFace: "Cambria", fontSize: 28, color: HEX.dark, align: "center", valign: "middle", isTextBox: true, objectName: "Setup" });
+// two bars on the same 0 to 347 track
+const bx = 4.1, bw = 8.3;
+[["Copy-today rule", "the baseline", 207, HEX.ec, HEX.dark], ["Our Random Forest", "the selected model", 293, HEX.danger, "FFFFFF"]].forEach(([n, sub, v, f, t], i) => {
+  const y = 3.45 + i * 1.15;
+  s.addText([{ text: n, options: { fontFace: "Cambria", fontSize: 22, color: HEX.dark, breakLine: true } }, { text: sub, options: { fontSize: 14, color: HEX.muted } }],
+    { x: 0.95, y, w: 3.0, h: 0.9, margin: 0, valign: "middle", isTextBox: true, objectName: "Bar label " + (i + 1) });
+  s.addShape(pres.ShapeType.rect, { x: bx, y, w: bw, h: 0.9, fill: { color: HEX.cream }, line: { type: "none" }, objectName: "Track " + (i + 1) });
+  s.addText([{ text: String(v), options: { fontFace: "Cambria", fontSize: 30, bold: true } }, { text: `  of 347 (${Math.round(v / 347 * 100)}%)`, options: { fontSize: 15 } }],
+    { x: bx, y, w: bw * v / 347, h: 0.9, fill: { color: f }, color: t, align: "right", valign: "middle", margin: [0, 14, 0, 0], isTextBox: true, objectName: "Bar " + (i + 1) });
 });
-s.addText("Hint: the copy-today rule caught 207.", { x: sx, y: 6.42, w: sw, h: 0.32, fontSize: 14, italic: true, color: HEX.muted, align: "center", margin: 0, isTextBox: true, objectName: "Hint" });
-notes(s, 9, "Your guess", "Marc", "20 seconds",
-  "Now the final exam, 2025, which we opened only once. There were 347 Danger days across the 16 cities. How many did our model catch: about 100, about 200 or about 300? A hint: copying today caught 207. Hands up for A... B... C...");
+s.addText([{ text: "86 more Danger days", options: { bold: true } }, { text: " got a warning the day before, compared with copying today." }], {
+  x: 0.95, y: 5.95, w: 11.45, h: 0.62, fill: { color: HEX.dark }, fontFace: "Cambria", fontSize: 20, color: HEX.bg,
+  align: "center", valign: "middle", margin: 6, isTextBox: true, objectName: "Difference" });
+notes(s, 9, "Danger days caught", "Marc", "25 seconds",
+  "Now the final exam, 2025, which we opened only once. There were 347 Danger days across the 16 cities. Copying today warned about 207 of them, 60%. " +
+  "Our Random Forest warned about 293, 84%. That is 86 more Danger days with a warning the day before.");
 
 // ================= 10. Final exam result =================
 s = content("FINAL EXAM RESULT", "Results", "The selected Random Forest on 2025, compared with copy-today", 7.2);
@@ -324,13 +319,13 @@ s.addText("Not a better all-round forecaster, but a good early warning: it catch
   x: 0.95, y: 5.3, w: 11.45, h: 1.1, fill: { color: HEX.dark }, fontFace: "Cambria", italic: true, fontSize: 20, color: HEX.bg,
   align: "center", valign: "middle", margin: 18, isTextBox: true, objectName: "Takeaway" });
 notes(s, 10, "Final exam result", "Marc", "50 seconds",
-  "The answer is C: it caught 293 of the 347 Danger days, 84%. Copying today caught only 207, 60%. " +
-  "The price: when it warned Danger, it was right only 36% of the time, about two false alarms for every real Danger day. And its overall score, 0.61, is below copy-today's 0.68. " +
-  "Remember our vote: we said missing a Danger day is worse than a false alarm. So it is not a better all-round forecaster, but it is a good early warning. Edrian will show it live.");
+  "Here is the full picture. Catching 293 Danger days has a price: " +
+  "when it warned Danger, it was right only 36% of the time, about two false alarms for every real Danger day. And its overall score, 0.61, is below copy-today's 0.68. " +
+  "Remember our choice: we said missing a Danger day is worse than a false alarm. So it is not a better all-round forecaster, but it is a good early warning. Edrian will show it live.");
 
 // ================= 11. Live demo =================
 s = content("LIVE DEMO", "Results", "heatcast-ncr.streamlit.app", 4.2, { bold: true });
-const steps = [["You pick a city", "Call out a city. We type a hot day: heat index 45.5 °C, lowest 29 °C, no rain, 1,008 hPa, sunshine 7,000."],
+const steps = [["A hot day in Manila", "We choose Manila and type a hot day: heat index 45.5 °C, lowest 29 °C, no rain, 1,008 hPa, sunshine 7,000."],
   ["A mistake on purpose", "Rain of −5 mm is impossible: the app shows the accepted range and gives no prediction."],
   ["An empty form", "Every missing value is named by the app; nothing is filled in silently."]];
 steps.forEach(([h, t], i) => {
@@ -347,7 +342,7 @@ s.addImage({ path: path.join(IMG, "app_land.png"), x: 12.4 - 4.45 * 1212 / 852, 
 s.addShape(pres.ShapeType.rect, { x: 12.4 - 4.45 * 1212 / 852, y: 2.15, w: 4.45 * 1212 / 852, h: 4.45, fill: { type: "none" }, line: { color: "E2CDBB", width: 0.75 }, objectName: "Screenshot frame" });
 notes(s, 11, "Live demo", "Edrian", "1 minute 45",
   "BEFORE THE TALK: open heatcast-ncr.streamlit.app; the first load can take about a minute. If the internet fails, show this screenshot, or run it locally with: streamlit run app/streamlit_app.py.\n\n" +
-  "Let's try it. Can someone pick a city? (Choose it at the top; the city lights up blue on the map.) Let's say today was very hot there: heat index 45.5, lowest temperature 29, rain 0, pressure 1008, sunshine 7000. Click the button. " +
+  "Let's try it with Manila. (Choose it at the top; the city lights up blue on the map.) Say today was very hot there: heat index 45.5, lowest temperature 29, rain 0, pressure 1008, sunshine 7000. Click the button. " +
   "It predicts the level for tomorrow with the probability of each level, and the city takes that level's colour on the map. It also reminds users it is a decision aid, not a PAGASA advisory. " +
   "Now a mistake on purpose: rain of minus 5. The app refuses it and shows the accepted range. And if we clear the form and click, it names every missing value instead of guessing. " +
   "This is the same saved model that took the final exam, and the input checks are covered by 51 automated tests.");
